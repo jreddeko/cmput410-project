@@ -1,0 +1,30 @@
+<html>
+<head>
+<script>
+	function deleteUser()
+	{
+		
+	}
+</script>
+</head>
+
+<body>
+	{% regroup testList by isvalid as usersList %}
+
+    <ul>
+    {% for isvalid in usersList %}
+    	<li> {{isvalid.grouper}}
+    		<ul> 
+    			{% for item in isvalid.list %}
+			        <li>
+			        	{{ item.username }}, {{ item.register_date }}, {{ item.active }}
+			        	<button onclick="editUser()"> edit </button>
+			        	<button onclick="deleteUser()"> delete </button>
+			        </li>
+		        {% endfor %}
+		    </ul>
+		<li>
+    {% endfor %}
+    </ul>
+</body>
+</html>
