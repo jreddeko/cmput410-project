@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core import serializers
 from main.models import Users, Posts
 import json
 import time
@@ -24,18 +25,16 @@ def server_admin(request):
 
 def users(request):
   if request.method == 'GET':
-    users = Users.objects.values_list("username","password")
-    users_json = json.dumps(list(users), cls=DjangoJSONEncoder)
-    return HttpResponse(users)
+    response_data = serializers.serialize('json', Users.objects.all())
+    return HttpResponse(response_data)
   else:
     return HttpResponseNotAllowed
 
 @csrf_exempt
 def posts(request,username):
   if request.method == 'GET':
-    posts = Posts.objects.values_list("id","title")
-    posts_json = json.dumps(list(posts), cls=DjangoJSONEncoder)
-    return HttpResponse(posts_json)
+    response_data = serializers.serialize('json', Posts.objects.filter(owner_id=Users.objects.get(username=username)))
+    return HttpResponse(response_data)
   elif request.method == 'PUT':
     #add post
     #eg curl -X PUT -H "Content-Type: application/json" -d '{"title":"sometitle", "permission":"local", "content_type":"content_type", "content":"bunch of stuff", "visibility" :"poor"}' http://localhost:8000/friendbook/user/jasonreddekopp/post 
@@ -48,8 +47,8 @@ def posts(request,username):
 @csrf_exempt
 def post (request, username,post_id):
   if request.method == 'GET':
-    post = Posts.objects.get(owner_id=Users.objects.get(username=username), id = post_id)
-    return HttpResponse("Title: " + post.title + '\n' + "Content: " + post.content + '\n')
+    reponse_data = serializers.serialize('json', Posts.objects.filter(owner_id=Users.objects.get(username=username), id = post_id))
+    return HttpResponse(reponse_data)
   elif request.method == 'POST':
     #modify post
     doSOmething()
@@ -105,7 +104,8 @@ def user(request, username):
   context_instance=RequestContext(request)
   if request.method == 'GET':
     user = Users.objects.get(username=username)
-    return HttpResponse(user.username)
+    reponse_data = serializers.serialize('json', [user])
+    return HttpResponse(reponse_data)
   elif request.method == 'POST':
     # NOT IMPLEMENTED YET
     doSomething()

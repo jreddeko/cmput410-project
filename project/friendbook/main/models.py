@@ -11,8 +11,8 @@ class Users(models.Model):
 
 class Posts(models.Model):
 	title = models.CharField(max_length=30)
-	source = models.CharField(max_length=30)
-	origin = models.CharField(max_length=30)
+	source = models.CharField(max_length=30, blank= True)
+	origin = models.CharField(max_length=30, blank= True)
 	owner_id = models.ForeignKey(Users)
 	permission = models.CharField(max_length=30)
 	content_type = models.CharField(max_length=30)
