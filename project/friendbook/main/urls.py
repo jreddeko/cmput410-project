@@ -1,5 +1,7 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import patterns, include, url
 from main import views
+from django.contrib import admin
+admin.autodiscover()
 
 urlpatterns = patterns('',
     url(r'^$', views.index, name='index'),
@@ -16,4 +18,5 @@ urlpatterns = patterns('',
     url(r'^user/(?P<username>\w+)/image$', views.images, name='images'),
     url(r'^user/(?P<username>\w+)/image/$', views.images, name='images'),
     url(r'^user/(?P<username>\w+)/image/(?P<image_id>\w+)/$', views.image, name='image'),
+    url(r'^admin/', include(admin.site.urls))
 )
