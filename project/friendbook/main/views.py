@@ -31,21 +31,23 @@ def users(request):
 
 @csrf_exempt
 def posts(request,username):
-  if request.method == 'GET':
-    artifact = Users.objects.get(username=username)
-    response_data = serializers.serialize('json', Posts.objects.filter(owner_id=Users.objects.get(username=username)))
-    return HttpResponse(response_data)
-  elif request.method == 'PUT':
-    #add post
-    #eg curl -X PUT -H "Content-Type: application/json" -d '{"title":"sometitle", "permission":"local", "content_type":"content_type", "content":"bunch of stuff", "visibility" :"poor"}' http://localhost:8000/friendbook/user/testperson/post 
-    b = json.loads(request.body)
-    post = Posts.objects.create(title = b['title'], owner_id=Users.objects.get(username=username), permission= b['permission'], content_type= b['content_type'], content=b['content'],  visibility = b['visibility'])
-    post.source = request.build_absolute_uri() + "/" + str(post.id)
-    post.save()
-    response_data = serializers.serialize('json', [post])
-    return HttpResponse(response_data)
-  else:
-    return HttpResponseNotAllowed
+  context = RequestContext(request)
+  return render_to_response('main/postwall.html', context)
+  #if request.method == 'GET':
+  #  artifact = Users.objects.get(username=username)
+  #  response_data = serializers.serialize('json', Posts.objects.filter(owner_id=Users.objects.get(username=username)))
+  #  return HttpResponse(response_data)
+  #elif request.method == 'PUT':
+  #  #add post
+  #  #eg curl -X PUT -H "Content-Type: application/json" -d '{"title":"sometitle", "permission":"local", "content_type":"content_type", "content":"bunch of stuff", "visibility" :"poor"}' http://localhost:8000/friendbook/user/testperson/post 
+  #  b = json.loads(request.body)
+  #  post = Posts.objects.create(title = b['title'], owner_id=Users.objects.get(username=username), permission= b['permission'], content_type= b['content_type'], content=b['content'],  visibility = b['visibility'])
+  #  post.source = request.build_absolute_uri() + "/" + str(post.id)
+  #  post.save()
+  #  response_data = serializers.serialize('json', [post])
+  #  return HttpResponse(response_data)
+  #else:
+  #  return HttpResponseNotAllowed
 
 @csrf_exempt
 def post (request, username,post_id):
