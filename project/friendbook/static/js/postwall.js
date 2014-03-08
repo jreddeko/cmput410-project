@@ -87,8 +87,70 @@ $(document).ready(function (){
         ],
         toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
     });
+    
+    $("#new_post").submit(function(e) {
+        e.preventDefault();
+        processPostData();
+    });
 
 });
+
+function processPostData()
+{
+    var permission = $("#post_permissions").val();
+    var authorname = $("#spec_author_input").val();
+    var title = $("#post_title").val();
+    var description = $("#post_description").val();
+    var content = tinymce.get("post_content").getContent();
+    var host = window.location.host;
+    var posttime = $.now();
+    
+    //var source = not done yet
+    //var origin = not done yet
+    //var category = not implemented yet
+    //var guid = ??
+    
+    // make the JSON string and pass to AJAX and call url
+    // not tested yet!
+    var targetUrl = $("#new_post").attr("action");
+    $.ajax({
+        url: targetUrl,
+        type: 'PUT',
+        contentType: 'text/html',
+        data:{
+            "posts":[
+                {
+                    "title": title,
+                    "source": 'blah',
+                    "origin": 'blah',
+                    "description": description,
+                    "content-type": 'text/html',
+                    "content": content,
+                    "author": {
+                        "id": 1,
+                        "host": host,
+                        "displayname": "gayoung",
+                        "url": host+"author/gayoung"
+                    },
+                    "categories": "['hello', 'world']",
+                    "comments": [{}],
+                    "pubDate": posttime,
+                    "guid": 'blah',
+                    "visibility": permission
+                    
+                }
+            ]
+        },
+        success: function() {
+            alert("success");
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert ("AJAX error: "+ jqXHR + ", "+textStatus+", "+errorThrown);
+        }
+    })
+    
+    
+}
 
 function text2form(currentdbId)
 {
@@ -98,7 +160,8 @@ function text2form(currentdbId)
         $("#post_overlay-"+currentdbId).css("display", "none");
         
         // get currently displayed contents of the post
-        var headerContent = $("#post_content-"+currentdbId+" h2").first().text();
+        var headerContent = $("#post-"+currentdbId+" h2").first().text();
+        var description = $("#post_description-"+currentdbId).text();
         var bodyContent = '';
         $("#post_content-"+currentdbId).children().each(function() {
             if(this.tagName != "h2")
@@ -131,6 +194,8 @@ function text2form(currentdbId)
                 }
             }
         });
+        
+        $("#post_description-"+currentdbId).val(description);
         tinymce.init({
         selector: "#post_content-"+currentdbId,
         plugins: [
@@ -155,7 +220,7 @@ function createForm(id)
                             '<div class="col-sm-10">'+
                                 '<select id="post_permissions-'+id+'" name="post_permissions-"'+id+'>'+
                                     '<option value="private" selected="selected">Private</option>'+
-                                        '<option value="spec_autor">Specify</option>'+
+                                        '<option value="spec_author">Specify</option>'+
                                         '<option value="friends">Friends</option>'+
                                         '<option value="friendsoffriends">Friends of my friends</option>'+
                                         '<option value="local">Friends within my host</option>'+
@@ -173,6 +238,12 @@ function createForm(id)
                                 '<label for="post_title-'+id+'" class="col-sm-2">Title: </label>'+
                                 '<div class="col-sm-10">'+
                                     '<input type="text" id="post_title-'+id+'" name="post_title'+id+'" style="width: 90%;" placeholder="Title of the post"/>'+
+                                '</div>'+
+                            '</div>'+
+                            '<div class="form-group">'+
+                                '<label for="post_description-'+id+'" class="col-sm-2">Post Description:</label>'+
+                                '<div class="col-sm-10">'+
+                                  '<input id="post_description-'+id+'" name="post_description-'+id+'" style="width: 90%;" placeholder="Description of the post"/>'+  
                                 '</div>'+
                             '</div>'+
                             '<div class="form-group">'+
