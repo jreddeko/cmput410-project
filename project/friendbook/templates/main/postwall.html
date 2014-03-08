@@ -7,19 +7,31 @@
         <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet"/>
         <link href="{% static 'css/blog.css'%}" rel="stylesheet"/>
         <script type="text/javascript" src="{% static 'js/jquery/jquery-1.8.3.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/tinymce/tinymce.min.js' %}"></script>
         <script type="text/javascript">
             $(document).ready(function (){
+                $("#spec_author_div").hide();
                 $("#post_permissions").change(function() {
                     var currentVal = $(this).val();
                     if(currentVal == "spec_autor")
                     {
-                        $("#spec_author_input").show();
+                        $("#spec_author_div").show();
                     }
                     else
                     {
-                        $("#spec_author_input").hide();
+                        $("#spec_author_div").hide();
                     }
                 });
+                tinymce.init({
+                    selector: "textarea",
+                    plugins: [
+                        "advlist autolink lists link image charmap preview anchor",
+                        "searchreplace visualblocks code fullscreen",
+                        "insertdatetime media table contextmenu paste"
+                    ],
+                    toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
+                });
+
             });
         </script>
     </head>
@@ -71,34 +83,47 @@
                 <p class="lead blog-description">Welcome to social media!</p>
             </div>
             
-            <div class="row">
-                
+            <div class="row">  
                 <div class="col-sm-8 blog-main">
-                    <hr />
-                    <div class="blog-post">
-                        <h2 class="blog-post-title">Create Post</h2>
+                    <div class="well">
+                        <h3>Create Post</h3>
                         <form class="form-horizontal" action="" method="POST">
                             <div class="form-group">
-                                <label>Permissions:</label>
-                                <select id="post_permissions" name="post_permissions">
-                                    <option value="private">Private</option>
-                                    <option value="spec_autor">Specify</option>
-                                    <option value="private">Private</option>
-                                    <option value="private">Private</option>
-                                    <option value="private">Private</option>
-                                </select>
-                                <input id="spec_author" name="spec_autor"/>
+                                <label for="post_permissions" class="col-sm-2 control-label">Permissions:</label>
+                                <div class="col-sm-10">
+                                    <select id="post_permissions" name="post_permissions">
+                                        <option value="private" selected="selected">Private</option>
+                                        <option value="spec_autor">Specify</option>
+                                        <option value="friends">Friends</option>
+                                        <option value="friendsoffriends">Friends of my friends</option>
+                                        <option value="local">Friends within my host</option>
+                                        <option value="public">Public</option>
+                                    </select>
+                                </div>
+                            </div>
+                             <div id="spec_author_div" class="form-group">
+                                    <label for="spec_author_input" class="col-sm-2"> Author's username:</label>
+                                    <div class="col-sm-10">
+                                        <input id="spec_author_input" name="spec_author_input" style="width: 90%;" placeholder="Please input the author's username."/>
+                                    </div>
+                                </div>
+                            <div class="form-group">
+                                <label for="post_title" class="col-sm-2">Title: </label>
+                                <div class="col-sm-10">
+                                    <input type="text" id="post_title" name="post_title" style="width: 90%;" placeholder="Title of the post"/>
+                                </div>
                             </div>
                             <div class="form-group">
-                                <label>Title: </label>
-                                <input type="text" id="post_title" name="post_title"/>
+                                <label for="post_content" class="col-sm-2">Post Content:</label>
+                                <div class="col-sm-10">
+                                  <textarea id="post_content" name="post_content" style="width: 90%;"></textarea>  
+                                </div>
                             </div>
                             <div class="form-group">
-                                <label>Post Content:</label>
-                                <textarea id="post_content" name="post_content"/>
-                            </div>
-                            <div class="form-group">
-                                <button class="btn btn-primary btn-lg" type="submit">Post</button>
+                                <label class=col-sm-2></label>
+                                <div class="col-sm-10">
+                                    <button class="btn btn-primary btn-md" type="submit" width: 10%;">Post</button>
+                                </div>
                             </div>
                         </form>
                     </div><!-- /.blog-post -->
@@ -115,19 +140,6 @@
                         <p>Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.</p>
                     </div><!-- /.blog-post -->
                     
-                    <div class="blog-post">
-                        <h2 class="blog-post-title">New feature</h2>
-                        <p class="blog-post-meta">December 14, 2013 by <a href="#">Chris</a></p>
-                        
-                        <p>Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aenean lacinia bibendum nulla sed consectetur. Etiam porta sem malesuada magna mollis euismod. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-                        <ul>
-                            <li>Praesent commodo cursus magna, vel scelerisque nisl consectetur et.</li>
-                            <li>Donec id elit non mi porta gravida at eget metus.</li>
-                            <li>Nulla vitae elit libero, a pharetra augue.</li>
-                        </ul>
-                        <p>Etiam porta <em>sem malesuada magna</em> mollis euismod. Cras mattis consectetur purus sit amet fermentum. Aenean lacinia bibendum nulla sed consectetur.</p>
-                        <p>Donec ullamcorper nulla non metus auctor fringilla. Nulla vitae elit libero, a pharetra augue.</p>
-                    </div><!-- /.blog-post -->
                     
                 </div><!-- /.blog-main -->
                 
@@ -150,15 +162,6 @@
             <a href="#">Back to top</a>
             </p>
         </div>
-        
-        
-        <!-- Bootstrap core JavaScript
-         ================================================== -->
-        <!-- Placed at the end of the document so the pages load faster -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-        <script src="../../dist/js/bootstrap.min.js"></script>
-        <script src="../../assets/js/docs.min.js"></script>
-        
         
     </body>
 </html>
