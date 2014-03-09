@@ -95,7 +95,7 @@ def posts(request):
   if request.method == 'GET':
       #getGitHubEvents(username)
     # TODO: change this!! hard coded username for now for testing
-    artifact = Users.objects.get(username="gayoung")
+    artifact = Users.objects.get(username=request.session["username"])
     # later get db information here but no info yet
     #response_data = serializers.serialize('json', Posts.objects.filter(owner_id=Users.objects.get(username=username)))
     #TODO grab username from session later
