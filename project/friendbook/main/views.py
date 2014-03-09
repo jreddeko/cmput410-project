@@ -11,11 +11,12 @@ from main.models import Users, Posts
 import json
 import time
 import datetime
+import urllib2
 
 def index(request):
   context = RequestContext(request)
   return render_to_response('main/index.html', context)
-
+  
 def server_admin(request):
   if request.method == 'GET':
     context = RequestContext(request)
@@ -29,11 +30,17 @@ def users(request):
   else:
     return HttpResponseNotAllowed
 
+def getGitHubEvents(userName):
+    response = urllib2.urlopen("https://api.github.com/users/"+userName+"/events").read()
+    eventList = json.loads(response)
+
+    
 @csrf_exempt
 def posts(request,username):
   #context = RequestContext(request)
   #return render_to_response('main/postwall.html', context)
   if request.method == 'GET':
+    getGitHubEvents(username)
     # TODO: change this!! hard coded username for now for testing
     artifact = Users.objects.get(username="gayoung")
     # later get db information here but no info yet
