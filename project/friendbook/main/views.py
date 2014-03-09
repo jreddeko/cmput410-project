@@ -30,7 +30,8 @@ def index(request):
       return render_to_response('main/index.html', {"signupError": "Error: one or more missing fields"}, context)
 
     try:
-      Users.objects.create(username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
+      newUser = Users(username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
+      newUser.save()
     except IntegrityError as e:
       return render_to_response('main/index.html', {"signupError": "Error: username already exists"}, context)
 
@@ -45,10 +46,13 @@ def login(request):
   username = request.POST["username"]
   password = request.POST["password"]
 
-  request.session["loggedIn"] = True
-  request.session["username"] = username
+  if (len(Users.objects.filter(username = username, password = password)) == 1):
+    request.session["loggedIn"] = True
+    request.session["username"] = username
 
-  return redirect("index")
+    return redirect("wall")
+  else:
+    return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
 
 @require_http_methods(["GET"])
 def logout(request):
