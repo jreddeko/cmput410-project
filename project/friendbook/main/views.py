@@ -10,7 +10,7 @@ from django.core import serializers
 from main.models import Users, Posts
 import json
 import time
-import datetime
+from datetime import datetime
 import urllib2
 
 def index(request):
@@ -54,16 +54,25 @@ def posts(request,username):
     return render(request, 'main/postwall.html', {'username': 'gayoung'})
     #return HttpResponse(response_data)
   elif request.method == 'POST':
-    #add post
-    #eg curl -X PUT -H "Content-Type: application/json" -d '{"title":"sometitle", "permission":"local", "content_type":"content_type", "content":"bunch of stuff", "visibility" :"poor"}' http://localhost:8000/friendbook/user/testperson/post 
+    context = RequestContext(request)
     print request.POST
-    print request.POST.get("post_permissions")
-    #b = json.loads(request.POST)
-    post = Posts.objects.create(title = b['title'], owner_id=Users.objects.get(username=username), permission= b['permission'], content_type= b['content_type'], content=b['content'],  visibility = b['visibility'])
-    #post.source = request.build_absolute_uri() + "/" + str(post.id)
-    #post.save()
-    #response_data = serializers.serialize('json', [post])
-    #return HttpResponse(response_data)
+    title = request.POST["post_title"]
+    #author_id = Users.objects.get(username=request.session["username"])
+    author_id = Users.objects.get(username="gayoung")
+    print author_id
+    
+    permission = request.POST["post_permissions"]
+    source = request.POST["post_source"]
+    origin = request.POST["post_origin"]
+    category = request.POST["post_category"]
+    description = request.POST["post_description"]
+    content_type = "text/html"
+    content = request.POST["post_content"]
+    pub_date = datetime.now().date()
+    
+    post = Posts(title = title, source=source, origin=origin, category=category, description=description, content_type=content_type, content=content, owner_id=author_id, permission=permission, pub_date=pub_date, visibility = permission)
+    post.save()
+    render_to_response('main/postwall.html', {'username': 'gayoung'})
   else:
     return HttpResponseNotAllowed
 
