@@ -2,20 +2,7 @@
  * Javascript used in postwall.html
  */
 $(document).ready(function (){
-    $("#spec_author_div").hide();
     $(".post-overlays").css("display", "none");
-    $("#post_permissions").change(function() {
-        var currentVal = $(this).val();
-        if(currentVal == "spec_autor")
-        {
-            $("#spec_author_div").show();
-        }
-        else
-        {
-            $("#spec_author_div").hide();
-        }
-    });
-    
     $(".blog-post").mouseover(function() {
         var currentdivId = $(this).attr('id').split("-");
         var overlayheight = $(this).height();
@@ -87,71 +74,7 @@ $(document).ready(function (){
         ],
         toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
     });
-    
-    $("#new_post").submit(function(e) {
-        e.preventDefault();
-        processPostData();
-    });
-
 });
-//
-//function processPostData()
-//{
-//    var permission = $("#post_permissions").val();
-//    var authorname = $("#spec_author_input").val();
-//    var title = $("#post_title").val();
-//    var description = $("#post_description").val();
-//    var content = tinymce.get("post_content").getContent();
-//    var host = window.location.host;
-//    var posttime = $.now();
-//    
-//    var source = $("#post_source").val()
-//    //var origin = not done yet
-//    //var category = not implemented yet
-//    //var guid = ??
-//    
-//    // make the JSON string and pass to AJAX and call url
-//    // not tested yet!
-//    var targetUrl = $("#new_post").attr("action");
-//    $.ajax({
-//        url: targetUrl,
-//        type: 'PUT',
-//        contentType: 'text/html',
-//        data:{
-//            "posts":[
-//                {
-//                    "title": title,
-//                    "source": 'blah',
-//                    "origin": 'blah',
-//                    "description": description,
-//                    "content-type": 'text/html',
-//                    "content": content,
-//                    "author": {
-//                        "id": 1,
-//                        "host": host,
-//                        "displayname": "gayoung",
-//                        "url": host+"author/gayoung"
-//                    },
-//                    "categories": "['hello', 'world']",
-//                    "comments": [{}],
-//                    "pubDate": posttime,
-//                    "guid": 'blah',
-//                    "visibility": permission
-//                    
-//                }
-//            ]
-//        },
-//        success: function() {
-//            alert("success");
-//        },
-//        error: function(jqXHR, textStatus, errorThrown) {
-//            alert ("AJAX error: "+ jqXHR + ", "+textStatus+", "+errorThrown);
-//        }
-//    })
-//    
-//    
-//}
-
 function text2form(currentdbId)
 {
     // remove overlay with button triggers
