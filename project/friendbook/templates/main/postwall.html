@@ -31,21 +31,9 @@
                         </div>
                         <div class="navbar-collapse collapse">
                             <ul class="nav navbar-nav">
-                                <li class="active"><a href="#">Home</a></li>
-                                <li><a href="#about">About</a></li>
+                                <li class="active"><a href="#">Post Wall</a></li>
+                                <li><a href="{% url 'newpost' username %}">Create Post</a></li>
                                 <li><a href="#contact">Contact</a></li>
-                                <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
-                                    <ul class="dropdown-menu">
-                                        <li><a href="#">Action</a></li>
-                                        <li><a href="#">Another action</a></li>
-                                        <li><a href="#">Something else here</a></li>
-                                        <li class="divider"></li>
-                                        <li class="dropdown-header">Nav header</li>
-                                        <li><a href="#">Separated link</a></li>
-                                        <li><a href="#">One more separated link</a></li>
-                                    </ul>
-                                </li>
                             </ul>
                         </div>
                     </div>
@@ -64,56 +52,6 @@
             
             <div class="row">  
                 <div class="col-sm-8 blog-main">
-                    <div class="well">
-                        <h3>Create Post</h3>
-                        <form id="new_post" class="form-horizontal" action="{% url 'posts' username %}" method="post">{% csrf_token %}
-                            <div class="form-group">
-                                <label for="post_permissions" class="col-sm-2 control-label">Permissions:</label>
-                                <div class="col-sm-10">
-                                    <!-- chang evalue of these options to match ones given in JSON example -->
-                                    <select id="post_permissions" name="post_permissions">
-                                        <option value="private" selected="selected">Private</option>
-                                        <option value="spec_author">Specify</option>
-                                        <option value="friends">Friends</option>
-                                        <option value="friendsoffriends">Friends of my friends</option>
-                                        <option value="local">Friends within my host</option>
-                                        <option value="public">Public</option>
-                                    </select>
-                                </div>
-                            </div>
-                             <div id="spec_author_div" class="form-group">
-                                    <label for="spec_author_input" class="col-sm-2"> Author's username:</label>
-                                    <div class="col-sm-10">
-                                        <input id="spec_author_input" name="spec_author_input" style="width: 90%;" placeholder="Please input the author's username."/>
-                                    </div>
-                                </div>
-                            <div class="form-group">
-                                <label for="post_title" class="col-sm-2">Title: </label>
-                                <div class="col-sm-10">
-                                    <input type="text" id="post_title" name="post_title" style="width: 90%;" placeholder="Title of the post"/>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="post_description" class="col-sm-2">Post Description:</label>
-                                <div class="col-sm-10">
-                                  <input id="post_description" name="post_description" style="width: 90%;" placeholder="Description of the post"/>  
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="post_content" class="col-sm-2">Post Content:</label>
-                                <div class="col-sm-10">
-                                  <textarea id="post_content" name="post_content" style="width: 90%;"></textarea>  
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-sm-2"></label>
-                                <div class="col-sm-10">
-                                    <button class="btn btn-primary btn-md" type="submit" width: 10%;">Post</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div><!-- /.well -->
-                    </hr>
                     <div id="post-dbId"class="blog-post">
                         <div id="post_overlay-dbId" class="post-overlays">
                             <button class="btn btn-default btn-md post_overlayButtons overlayEdit" id="post_edti-dbId">Edit</button>
@@ -121,12 +59,19 @@
                             <a role="button" class="btn btn-default btn-md post_overlayButtons overlayDelete" href="">Delete</a>
                         </div>
                         <h2 class="blog-post-title">Another blog post</h2>
+                        <div id="post_category-dbId">
+                            <p class="blog-post-meta">Categories: <span>Latin, Language<span></p>
+                        </div>
                         <div id="post_description-dbId">
                             <p>Post description</p>
                         </div>
+                        <div id="post_source-dbId">
+                            <p class="blog-post-meta">Source: <span>http://getbootstrap.com<span></p>
+                        </div>
+                        <div id="post_origin-dbId">
+                            <p class="blog-post-meta">Origin: <span>http://getbootstrap.com<span></p>
+                        </div>
                         <div id="post_content-dbId" class="blog_content">
-                            <p class="blog-post-meta">December 23, 2013 by <a href="#">Jacob</a></p>
-                            
                             <p>Cum sociis natoque penatibus et magnis <a href="#">dis parturient montes</a>, nascetur ridiculus mus. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Sed posuere consectetur est at lobortis. Cras mattis consectetur purus sit amet fermentum.</p>
                             <blockquote>
                                 <p>Curabitur blandit tempus porttitor. <strong>Nullam quis risus eget urna mollis</strong> ornare vel eu leo. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
@@ -134,17 +79,42 @@
                             <p>Etiam porta <em>sem malesuada magna</em> mollis euismod. Cras mattis consectetur purus sit amet fermentum. Aenean lacinia bibendum nulla sed consectetur.</p>
                             <p>Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.</p>
                         </div>
+                        <div id="post_author_info-dbId">
+                            <p class="blog-post-meta">Posted on March 8, 2014 by <a href="#">Jacob</a></p>
+                        </div>
                         <!-- hidden div where it will be storing the permissions value from the DB. Needed when editting the post to load previous contents asynchronously -->
                         <input id="post_permission-dbId" type="hidden" value="public"/>
+                        <!-- end of post -->
+                        <!-- start of comments -->
+                    </div>
+                    <div id="post_comment-dbId" class="well">
+                            <h4> Comments </h4>
+                            <!-- test comments for display purposes -->
+                            <!-- TODO later this would be replaced with a for loop -->
+                            <div id="post_comment-commentdbId1" class="post_comments">
+                                <p> Test Comment 1</p>
+                                <p class="blog-post-meta">Commented by: Author1</p>
+                            </div>
+                            <hr/>
+                            <div id="post_comment-commentdbId2" class="post_comments">
+                                <p> Test Comment 2</p>
+                                <p class="blog-post-meta">Commented by: Author2</p>
+                            </div>
+                            <hr>
+                            <div id="post_new_comment">
+                                <form id="new_comment-postId" class="form-horizontal" action="{% url 'posts' username %}" method="post"
+                            </div>
+                        </div>
                     </div><!-- /.blog-post -->
-                </div><!-- /.blog-main -->
+                <!-- /.blog-main -->
+            </div>
                 
                 <div class="col-sm-3 col-sm-offset-1 blog-sidebar list_friends">
                     <div class="sidebar-module sidebar-module-inset">
                         <h4>Friends</h4>
                         <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;">
-                            <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;">
-                                <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;">
+                        <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;">
+                        <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;">
                     </div>
                 </div><!-- /.blog-sidebar -->
                 
@@ -153,10 +123,7 @@
         </div><!-- /.container -->
         
         <div class="blog-footer">
-            <p>Blog template built for <a href="http://getbootstrap.com">Bootstrap</a> by <a href="https://twitter.com/mdo">@mdo</a>.</p>
-            <p>
             <a href="#">Back to top</a>
-            </p>
         </div>
         
     </body>

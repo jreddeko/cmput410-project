@@ -1,9 +1,9 @@
-
+{% load static  %}
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="/Users/jason_reddekopp/Dropbox/School/cmput410/project/project/friendbook/static/css/base.css">
-	<link rel="stylesheet" type="text/css" href="/Users/jason_reddekopp/Dropbox/School/cmput410/project/project/friendbook/static/css/dashboard.css">
-	<link rel="stylesheet" type="text/css" href="/Users/jason_reddekopp/Dropbox/School/cmput410/project/project/friendbook/static/css/forms.css">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/dashboard.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/forms.css' %}">
 </head>
 <body class="dashboard">
 	<div id = "container">
@@ -28,14 +28,14 @@
 								<td> {{ item.register_date }}</td> 
 								<td> {{item.role}}</td>
 								<td>
-									<form action="/friendbook/user/{{ item.username }}/"  method="POST" >
+									<form action="/author/{{ item.username }}/"  method="POST" >
 										<input type="hidden" value="{{ item.username }}"  name = "username"/>
 										<input type="hidden" value="add" name="method" >
 										<a href="javascript:; parentNode.submit();" onclick="parentNode.submit();" class="addlink">add</A>
 										</form>	
 									</td>
 									<td>
-										<form action="/friendbook/user/{{ item.username }}/"  method="POST" >
+										<form action="/author/{{ item.username }}/"  method="POST" >
 											<input type="hidden" value="{{ item.username }}"  name = "username"/>
 											<input type="hidden" value="change" name="method" >
 											<a href="javascript:; parentNode.submit();" onclick="parentNode.submit();" class="changelink">change</A>
@@ -64,14 +64,14 @@
 										<td> {{ item.register_date }}</td> 
 										<td> {{item.role}}</td>
 										<td>
-											<form action="/friendbook/user/{{ item.username }}/"  method="POST" >
+											<form action="/author/{{ item.username }}/"  method="POST" >
 												<input type="hidden" value="{{ item.username }}"  name = "username"/>
 												<input type="hidden" value="delete" name="method" >
 												<a href="javascript:; parentNode.submit();" onclick="parentNode.submit();" class="deletelink">delete</A>
 												</form>	
 											</td>
 											<td>
-												<form action="/friendbook/user/{{ item.username }}/"  method="POST" >
+												<form action="/author/{{ item.username }}/"  method="POST" >
 													<input type="hidden" value="{{ item.username }}"  name = "username"/>
 													<input type="hidden" value="change" name="method" >
 													<a href="javascript:; parentNode.submit();" onclick="parentNode.submit();" class="changelink">change</A>

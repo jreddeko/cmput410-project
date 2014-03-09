@@ -76,7 +76,12 @@ def getGitHubEvents(userName):
     response = urllib2.urlopen("https://api.github.com/users/"+userName+"/events").read()
     eventList = json.loads(response)
 
-    
+def wall(request, username):
+    return render_to_response('main/postwall.html', {'username': username})
+
+def newpost(request, username):
+    return render_to_response('main/create_post.html', {'username': username})
+
 @csrf_exempt
 def posts(request,username):
   #context = RequestContext(request)

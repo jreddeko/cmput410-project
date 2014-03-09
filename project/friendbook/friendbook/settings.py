@@ -53,7 +53,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'friendbook.urls'
+ROOT_URLCONF = 'main.urls'
 
 WSGI_APPLICATION = 'friendbook.wsgi.application'
 
