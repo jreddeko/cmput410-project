@@ -5,6 +5,8 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     url(r'^$', views.index, name='index'),
+    url(r'^login$', views.login, name='login'),
+    url(r'^logout$', views.logout, name='logout'),
     url(r'^server_admin/$', views.server_admin, name='server_admin'),
     url(r'^user$', views.users, name='users'),
     url(r'^user/$', views.users, name='users'),

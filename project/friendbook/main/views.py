@@ -7,15 +7,57 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
+from django.db import IntegrityError
 from main.models import Users, Posts
 import json
 import time
-import datetime
+from datetime import datetime
 import urllib2
 
+@require_http_methods(["GET", "POST"])
 def index(request):
   context = RequestContext(request)
-  return render_to_response('main/index.html', context)
+  
+  if (request.method == "POST"):
+    username = request.POST["username"]
+    password = request.POST["password"]
+    role = "Author"
+    registerDate = datetime.now().date()
+    active = 0
+    github = request.POST["github"]
+
+    if ((username == "") or (password == "")):
+      return render_to_response('main/index.html', {"signupError": "Error: one or more missing fields"}, context)
+
+    try:
+      Users.objects.create(username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
+    except IntegrityError as e:
+      return render_to_response('main/index.html', {"signupError": "Error: username already exists"}, context)
+
+    return render_to_response('main/index.html', {"signupSuccess": "Successfully created an account! Before you can login, the website admin has to verify who you are"}, context)
+  else:
+    return render_to_response('main/index.html', context)
+
+@require_http_methods(["POST"])
+def login(request):
+  context = RequestContext(request)
+  
+  username = request.POST["username"]
+  password = request.POST["password"]
+
+  request.session["loggedIn"] = True
+  request.session["username"] = username
+
+  return redirect("index")
+
+@require_http_methods(["GET"])
+def logout(request):
+  context = RequestContext(request)
+
+  request.session["loggedIn"] = False
+  request.session["username"] = ""
+
+  return redirect("index")
   
 def server_admin(request):
   if request.method == 'GET':
