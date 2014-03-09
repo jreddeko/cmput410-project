@@ -7,15 +7,57 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
+from django.db import IntegrityError
 from main.models import Users, Posts
 import json
 import time
 from datetime import datetime
 import urllib2
 
+@require_http_methods(["GET", "POST"])
 def index(request):
   context = RequestContext(request)
-  return render_to_response('main/index.html', context)
+  
+  if (request.method == "POST"):
+    username = request.POST["username"]
+    password = request.POST["password"]
+    role = "Author"
+    registerDate = datetime.now().date()
+    active = 0
+    github = request.POST["github"]
+
+    if ((username == "") or (password == "")):
+      return render_to_response('main/index.html', {"signupError": "Error: one or more missing fields"}, context)
+
+    try:
+      Users.objects.create(username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
+    except IntegrityError as e:
+      return render_to_response('main/index.html', {"signupError": "Error: username already exists"}, context)
+
+    return render_to_response('main/index.html', {"signupSuccess": "Successfully created an account! Before you can login, the website admin has to verify who you are"}, context)
+  else:
+    return render_to_response('main/index.html', context)
+
+@require_http_methods(["POST"])
+def login(request):
+  context = RequestContext(request)
+  
+  username = request.POST["username"]
+  password = request.POST["password"]
+
+  request.session["loggedIn"] = True
+  request.session["username"] = username
+
+  return redirect("index")
+
+@require_http_methods(["GET"])
+def logout(request):
+  context = RequestContext(request)
+
+  request.session["loggedIn"] = False
+  request.session["username"] = ""
+
+  return redirect("index")
   
 def server_admin(request):
   if request.method == 'GET':
@@ -34,31 +76,33 @@ def getGitHubEvents(userName):
     response = urllib2.urlopen("https://api.github.com/users/"+userName+"/events").read()
     eventList = json.loads(response)
 
-def wall(request, username):
-    return render_to_response('main/postwall.html', {'username': username})
+def wall(request):
+    context = RequestContext(request)
+    return render_to_response('main/postwall.html', context)
 
-def newpost(request, username):
-    return render_to_response('main/create_post.html', {'username': username})
+def newpost(request):
+    context = RequestContext(request)
+    return render_to_response('main/create_post.html', context)
 
 @csrf_exempt
-def posts(request,username):
-  #context = RequestContext(request)
+def posts(request):
+  context = RequestContext(request)
   #return render_to_response('main/postwall.html', context)
   if request.method == 'GET':
-    getGitHubEvents(username)
+      #getGitHubEvents(username)
     # TODO: change this!! hard coded username for now for testing
     artifact = Users.objects.get(username="gayoung")
     # later get db information here but no info yet
     #response_data = serializers.serialize('json', Posts.objects.filter(owner_id=Users.objects.get(username=username)))
     #TODO grab username from session later
-    return render(request, 'main/postwall.html', {'username': 'gayoung'})
+    return render(request, 'main/postwall.html', context)
     #return HttpResponse(response_data)
   elif request.method == 'POST':
     context = RequestContext(request)
     print request.POST
     title = request.POST["post_title"]
-    #author_id = Users.objects.get(username=request.session["username"])
-    author_id = Users.objects.get(username="gayoung")
+    author_id = Users.objects.get(username=request.session["username"])
+    #author_id = Users.objects.get(username="gayoung")
     print author_id
     
     permission = request.POST["post_permissions"]
@@ -72,7 +116,7 @@ def posts(request,username):
     
     post = Posts(title = title, source=source, origin=origin, category=category, description=description, content_type=content_type, content=content, owner_id=author_id, permission=permission, pub_date=pub_date, visibility = permission)
     post.save()
-    render_to_response('main/postwall.html', {'username': 'gayoung'})
+    render_to_response('main/postwall.html', context)
   else:
     return HttpResponseNotAllowed
 

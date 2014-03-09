@@ -32,7 +32,7 @@
                         <div class="navbar-collapse collapse">
                             <ul class="nav navbar-nav">
                                 <li class="active"><a href="#">Post Wall</a></li>
-                                <li><a href="{% url 'newpost' username %}">Create Post</a></li>
+                                <li><a href="#">Create Post</a></li>
                                 <li><a href="#contact">Contact</a></li>
                             </ul>
                         </div>
@@ -46,7 +46,7 @@
             
             <div class="blog-header">
                 <!-- update Username to actual username when sessions are set. -->
-                <h1 class="blog-title">{{ username }}</h1>
+                <h1 class="blog-title">{{ request.session.username }}</h1>
                 <p class="lead blog-description">Welcome to social media!</p>
             </div>
             
@@ -101,9 +101,9 @@
                                 <p class="blog-post-meta">Commented by: Author2</p>
                             </div>
                             <hr>
-                            <div id="post_new_comment">
-                                <form id="new_comment-postId" class="form-horizontal" action="{% url 'posts' username %}" method="post"
-                            </div>
+                            <!--div id="post_new_comment">
+                                <form id="new_comment-postId" class="form-horizontal" action="#" method="post"
+                            </div-->
                         </div>
                     </div><!-- /.blog-post -->
                 <!-- /.blog-main -->
