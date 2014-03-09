@@ -1,196 +1,97 @@
-<html lang="en-us"><head>
-<title>Change User | Friendbook site admin</title>
-<link rel="stylesheet" type="text/css" href="/Users/jason_reddekopp/Dropbox/School/cmput410/project/project/friendbook/static/admin/css/base.css">
-
-  
-  <link rel="stylesheet" type="text/css" href="/Users/jason_reddekopp/Dropbox/School/cmput410/project/project/friendbook/static/admin/css/changelists.css">
-  
-  
-    <script type="text/javascript" src="/friendbook/admin/jsi18n/"></script><style type="text/css"></style>
-  
-  
-  
-
-<!--[if lte IE 7]><link rel="stylesheet" type="text/css" href="/Users/jason_reddekopp/Dropbox/School/cmput410/project/project/friendbook/static/admin/css/ie.css" /><![endif]-->
-
-<script type="text/javascript">window.__admin_media_prefix__ = "/Users/jason_reddekopp/Dropbox/School/cmput410/project/project/friendbook/static/admin/";</script>
-
-
-<script type="text/javascript" src="/Users/jason_reddekopp/Dropbox/School/cmput410/project/project/friendbook/static/admin/js/core.js"></script>
-<script type="text/javascript" src="/Users/jason_reddekopp/Dropbox/School/cmput410/project/project/friendbook/static/admin/js/admin/RelatedObjectLookups.js"></script>
-<script type="text/javascript" src="/Users/jason_reddekopp/Dropbox/School/cmput410/project/project/friendbook/static/admin/js/jquery.js"></script>
-<script type="text/javascript" src="/Users/jason_reddekopp/Dropbox/School/cmput410/project/project/friendbook/static/admin/js/jquery.init.js"></script>
-<script type="text/javascript" src="/Users/jason_reddekopp/Dropbox/School/cmput410/project/project/friendbook/static/admin/js/actions.js"></script>
-
-<script type="text/javascript">
-(function($) {
-    $(document).ready(function($) {
-        $("tr input.action-select").actions();
-    });
-})(django.jQuery);
-</script>
-
-
-<meta name="robots" content="NONE,NOARCHIVE">
+{% load static  %}
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/changelists.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/forms.css' %}">
 </head>
-
-
+<title>Change User | Friendbook site admin</title>
 <body class="change-list">
+	<!-- Container -->
+	<div id="container">
+		<!-- Header -->
+		<div id="header">
+			<div id="branding">
+				<h1 id="site-name">Author administration</h1>
+			</div>
+			<div id="user-tools">
+				Welcome,
+				<strong>admin</strong>.
+			</div>
+		</div>
+		<!-- END Header -->
+		<div class="breadcrumbs">
+			› Users
+		</div>
+		<!-- Content -->
+		<div id="content" class="flex">
+			<h1>Edit User: {{ userprofile.0.username }}	</h1>
+			<div id="content-main">
+				<div class="module filtered" id="changelist">
+					<script type="text/javascript">document.getElementById("searchbar").focus();</script>
+					<form id="changelist-form" action="" method="post"><input type="hidden" name="csrfmiddlewaretoken" value="j9JolMo1qZhOjrCSNmsJPaooYA7Xkl2g">
+						<div class="results">
+							<table id="result_list">
+								<tr>
+									<td>username:</td>
+									<td>
+										<form action="/author/{{ item.username }}/"  method="POST" >
+											<input type="hidden" value="{{ item.username }}"  name = "username"/>
+											<input type="hidden" value="edit" name="method" >
+											<input value="{{userprofile.0.username}}" name="name">
+										</form>	
+									</td>
+								</tr>
+								<tr>
+									<td>password:</td>
+									<td>
+										<form action="/author/{{ userprofile.0.username }}/"  method="POST" >
+											<input type="hidden" value="{{ userprofile.0.username }}"  name = "username"/>
+											<input type="hidden" value="edit" name="method" >
+											<input value="{{userprofile.0.password}}" name="password">
+										</form>	
+									</td>
+								</tr>
+								<tr><td>role:</td>
+									<td>
+										<form action="/author/{{ userprofile.0.username }}/"  method="POST" >
+											<input type="hidden" value="{{ userprofile.0.username }}"  name = "username"/>
+											<input type="hidden" value="edit" name="method" >
+											<input value="{{userprofile.0.role}}" name="role">
+										</form>	
+									</td>
+								</tr>
+								<tr><td>register_date:</td>
 
-<!-- Container -->
-<div id="container">
+									<td>
+										<form action="/author/{{ userprofile.0.username }}/"  method="POST" >
+											<input type="hidden" value="{{ userprofile.0.username }}"  name = "username"/>
+											<input type="hidden" value="edit" name="method" >
+											<input value="{{userprofile.0.register_date}}" name="register_date">
+										</form>	
+									</td>
+								</tr>
+								<tr><td>github_account</td>
 
-    
-    <!-- Header -->
-    <div id="header">
-        <div id="branding">
-        
-<h1 id="site-name">Django administration</h1>
+									<td>
+										<form action="/author/{{ userprofile.0.username }}/"  method="POST" >
+											<input type="hidden" value="{{ userprofile.0.username }}"  name = "username"/>
+											<input type="hidden" value="edit" name="method" >
+											<input value="{{userprofile.0.github_account}}" name="github_account">
+										</form>	
+									</td>
+								</tr>
 
-        </div>
-        
-        <div id="user-tools">
-            Welcome,
-            <strong>admin</strong>.
-            
-                
-                
-                
-                <a href="/friendbook/admin/password_change/">Change password</a> /
-                
-                <a href="/friendbook/admin/logout/">Log out</a>
-            
-        </div>
-        
-        
-    </div>
-    <!-- END Header -->
-    
-<div class="breadcrumbs">
-<a href="/friendbook/admin/">Home</a>
-› <a href="/friendbook/admin/auth/">Auth</a>
-› Users
-</div>
-
-    
-
-    
-        
-    
-
-    <!-- Content -->
-    <div id="content" class="flex">
-        <h1>Edit User: {{ userprofile.0.username }}	</h1>
-        
-        
-        
-  <div id="content-main">
-    
-      
-        
-      
-    
-    
-    <div class="module filtered" id="changelist">
-      
-
-
-<script type="text/javascript">document.getElementById("searchbar").focus();</script>
-
-
-      
-
-
-      
-        
-          
-        
-      
-
-      <form id="changelist-form" action="" method="post"><input type="hidden" name="csrfmiddlewaretoken" value="j9JolMo1qZhOjrCSNmsJPaooYA7Xkl2g">
-      
-
-      
- 
-          
-
-
-<div class="results">
-<table id="result_list">
-	
-		<tr>
-			<td>username:</td>
-			<td>
-				<form action="/friendbook/user/{{ item.username }}/"  method="POST" >
-						<input type="hidden" value="{{ item.username }}"  name = "username"/>
-						<input type="hidden" value="edit" name="method" >
-						<input value="{{userprofile.0.username}}" name="name">
-				</form>	
-			</td>
-		</tr>
-		<tr>
-			<td>password:</td>
-			<td>
-				<form action="/friendbook/user/{{ userprofile.0.username }}/"  method="POST" >
-						<input type="hidden" value="{{ userprofile.0.username }}"  name = "username"/>
-						<input type="hidden" value="edit" name="method" >
-						<input value="{{userprofile.0.password}}" name="password">
-				</form>	
-			</td>
-		</tr>
-		<tr><td>role:</td>
-			<td>
-				<form action="/friendbook/user/{{ userprofile.0.username }}/"  method="POST" >
-						<input type="hidden" value="{{ userprofile.0.username }}"  name = "username"/>
-						<input type="hidden" value="edit" name="method" >
-						<input value="{{userprofile.0.role}}" name="role">
-				</form>	
-			</td>
-		</tr>
-		<tr><td>register_date:</td>
-
-			<td>
-				<form action="/friendbook/user/{{ userprofile.0.username }}/"  method="POST" >
-						<input type="hidden" value="{{ userprofile.0.username }}"  name = "username"/>
-						<input type="hidden" value="edit" name="method" >
-						<input value="{{userprofile.0.register_date}}" name="register_date">
-				</form>	
-			</td>
-		</tr>
-		<tr><td>github_account</td>
-			
-			<td>
-				<form action="/friendbook/user/{{ userprofile.0.username }}/"  method="POST" >
-						<input type="hidden" value="{{ userprofile.0.username }}"  name = "username"/>
-						<input type="hidden" value="edit" name="method" >
-						<input value="{{userprofile.0.github_account}}" name="github_account">
-				</form>	
-			</td>
-		</tr>
-	
-</table>
-</div>
-
-
-          
-      
- 
-
-</p>
-
-      </form>
-    </div>
-  </div>
-
-        
-        <br class="clear">
-    </div>
-    <!-- END Content -->
-
-    <div id="footer"></div>
+							</table>
+						</div>
+					</p>
+				</form>
+			</div>
+		</div>
+		<br class="clear">
+	</div>
+	<!-- END Content -->
+	<div id="footer"></div>
 </div>
 <!-- END Container -->
-
-
-
 </body></html>
