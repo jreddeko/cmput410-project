@@ -1,6 +1,6 @@
 from django.test import TestCase
 from main.models import Users, Posts
-class AnimalTestCase(TestCase):
+class FriendbookTestCase(TestCase):
 	def setUp(self):
 		Users.objects.create(username = "bob", password = 'ajsdkfljaslkdf', role = 'author', active = False, github_account = "")
 		Users.objects.create(username = "fred", password = '1231234124', role = 'author', active = False, github_account = "")
