@@ -16,53 +16,41 @@ import urllib2
 
 @require_http_methods(["GET", "POST"])
 def index(request):
-  context = RequestContext(request)
-  
-  if (request.method == "GET"):
-    return render_to_response('main/index.html', context)
-  else:
-    if ("login" in request.POST):
-      username = request.POST["username"]
-      password = request.POST["password"]
+    context = RequestContext(request)
 
-      if (len(Users.objects.filter(username = username, password = password)) == 1):
-        request.session["loggedIn"] = True
-        request.session["username"] = username
-        
-        return redirect("wall")
-      else:
-        return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
+    if (request.method == "GET"):
+        return render_to_response('main/index.html', context)
     else:
-      username = request.POST["username"]
-      password = request.POST["password"]
-      role = "Author"
-      registerDate = datetime.now().date()
-      active = 0
-      github = request.POST["github"]
+        if ("login" in request.POST):
+            username = request.POST["username"]
+            password = request.POST["password"]
+            
+            if (len(Users.objects.filter(username = username, password = password)) == 1):
+                request.session["loggedIn"] = True
+                request.session["username"] = username
+                
+                return redirect("wall")
+            else:
+                return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
+        else:
+            username = request.POST["username"]
+            password = request.POST["password"]
+            role = "Author"
+            registerDate = datetime.now().date()
+            active = 0
+            github = request.POST["github"]
+            
+            if ((username == "") or (password == "")):
+                return render_to_response('main/index.html', {"signupError": "Error: one or more missing fields"}, context)
+            
+            try:
+                newUser = Users(username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
+                newUser.save()
+            except IntegrityError as e:
+                return render_to_response('main/index.html', {"signupError": "Error: username already exists"}, context)
+            
+            return render_to_response('main/index.html', {"signupSuccess": "Successfully created an account! Before you can login, the website admin has to verify who you are"}, context)
 
-      if ((username == "") or (password == "")):
-        return render_to_response('main/index.html', {"signupError": "Error: one or more missing fields"}, context)
-
-        return redirect("wall")
-      else:
-        return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
-    else:
-      username = request.POST["username"]
-      password = request.POST["password"]
-      role = "Author"
-      registerDate = datetime.now().date()
-      active = 0
-      github = request.POST["github"]
-
-      if ((username == "") or (password == "")):
-        return render_to_response('main/index.html', {"signupError": "Error: one or more missing fields"}, context)
-      try:
-        newUser = Users(username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
-        newUser.save()
-      except IntegrityError as e:
-        return render_to_response('main/index.html', {"signupError": "Error: username already exists"}, context)
-
-      return render_to_response('main/index.html', {"signupSuccess": "Successfully created an account! Before you can login, the website admin has to verify who you are"}, context)
 
 @require_http_methods(["GET"])
 def logout(request):
