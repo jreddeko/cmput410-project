@@ -6,7 +6,6 @@ admin.autodiscover()
 #postwall url is just to test display only URI
 urlpatterns = patterns('',
     url(r'^$', views.index, name='index'),
-    url(r'^login$', views.login, name='login'),
     url(r'^logout$', views.logout, name='logout'),
     url(r'^server_admin/$', views.server_admin, name='server_admin'),
     url(r'^newpost/$', views.newpost, name='newpost'),
