@@ -2,12 +2,11 @@
  * Javascript used in postwall.html
  */
 $(document).ready(function (){
-                  console.log(userid);
     $(".post_buttons").click(function(e) {
         e.preventDefault();
         // reactivate the tinymce with the contents inside
         var currentdbId = $(this).attr("id").split("-")[1];
-        
+                             
         if($(this).text().trim() == "Edit")
         {
              text2form(currentdbId);
@@ -23,6 +22,7 @@ $(document).ready(function (){
             deletePost(userid, currentdbId)
         }
     });
+                  
 });
 
 function deletePost(userid, dbId)
@@ -90,7 +90,7 @@ function text2form(currentdbId)
         var sourceContent = $("#post_source-"+currentdbId).find("span").first().text();
         var originContent = $("#post_origin-"+currentdbId).find("span").first().text();
         var categoryContent = $("#post_category-"+currentdbId).find("span").first().text();
-        var description = $("#post_description-"+currentdbId).find("p").first().text();
+        var description = $("#post_description-"+currentdbId).find("span").first().text();
         var bodyContent = '';
         $("#post_content-"+currentdbId).children().each(function() {
             if(this.tagName != "h2")
@@ -100,36 +100,49 @@ function text2form(currentdbId)
         });
         var permissionValue = $("#post_permission-"+currentdbId).val();
         
-        var editForm = createForm(currentdbId);
-        
-        $(editForm).insertBefore($("#post-"+currentdbId));
-        $("#post-"+currentdbId).css("display", "none");
+        createForm(currentdbId);
     
-        tinymce.init({
-             selector: "#edit_post_content-"+currentdbId,
-             plugins: [
-                       "advlist autolink lists link image charmap preview anchor",
-                       "searchreplace visualblocks code fullscreen",
-                       "insertdatetime media table contextmenu paste"
-                       ],
-             toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
+    $("#edit_post_content-"+currentdbId).ready(function() {
+         tinymce.init({
+              mode: "exact",
+              elements: "edit_post_content-"+currentdbId,
+              width: '90%',
+              plugins: [
+                        "advlist autolink lists link image charmap preview anchor",
+                        "searchreplace visualblocks code fullscreen",
+                        "insertdatetime media table contextmenu paste"
+                        ],
+              toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image",
+              setup : function(ed) {
+                ed.on("init", function(e) {
+                    ed.setContent(bodyContent);
+                });
+              },
         });
+     });
+
+    $("#post-"+currentdbId).css("display", "none");
     
-        tinymce.execCommand('mceRemoveControl', false, "edit_post_content-"+currentdbId);
-        tinymce.execCommand('mceAddEditor', true, "edit_post_content-"+currentdbId);
-        
-        $("#spec_author_div-"+currentdbId).hide();
-        
+    $("#spec_author_div-"+currentdbId).hide();
+    
         $("#post_title-"+currentdbId).val(headerContent);
-        $("#post_source-"+currentdbId).val(sourceContent);
-        $("#post_origin-"+currentdbId).val(originContent);
-        $("#post_category-"+currentdbId).val(categoryContent);
+        $("#edit_post_source-"+currentdbId).val(sourceContent);
+        $("#edit_post_origin-"+currentdbId).val(originContent);
+        // categories has giant gaps! need to trim all!
+        var processedCategories = categoryContent.split(",");
+        var newCategoryString = processedCategories[0].trim();
+    
+        for (var i=1; i < processedCategories.length; i++)
+        {
+            newCategoryString += ", "+processedCategories[i].trim();
+        }
+        $("#edit_post_category-"+currentdbId).val(newCategoryString);
 
         $('select#post_permissions-'+currentdbId).children().each(function() {
             var currentVal = $(this).attr("value");
             if(currentVal.trim() == permissionValue.trim())
             {
-                $("#post_permission-"+currentdbId).val(3)
+                $("#edit_post_permission-"+currentdbId).val(3)
             }
             else
             {
@@ -140,9 +153,7 @@ function text2form(currentdbId)
             }
         });
         
-        $("#post_description-"+currentdbId).val(description);
-        tinymce.get("edit_post_content-"+currentdbId).setContent(bodyContent+" html");
-        
+        $("#edit_post_description-"+currentdbId).val(description);
 }
 
 function createForm(id)
@@ -153,7 +164,7 @@ function createForm(id)
                         '<div class="form-group">'+
                             '<label for="post_permissions" class="col-sm-3">Permissions:</label>'+
                             '<div class="col-sm-9">'+
-                                '<select id="post_permissions-'+id+'" name="post_permissions-"'+id+' class="col-sm-9 form-control" style="width: 90%;">'+
+                                '<select id="edit_post_permissions-'+id+'" name="post_permissions-"'+id+' class="col-sm-9 form-control" style="width: 90%;">'+
                                     '<option value="private" selected="selected">Private</option>'+
                                         '<option value="spec_author">Specify</option>'+
                                         '<option value="friends">Friends</option>'+
@@ -176,33 +187,33 @@ function createForm(id)
                                 '</div>'+
                             '</div>'+
                  '<div class="form-group">'+
-                    '<label for="post_source-'+id+'" class="col-sm-3">Source of the Post: </label>'+
+                    '<label for="edit_post_source-'+id+'" class="col-sm-3">Source of the Post: </label>'+
                     '<div class="col-sm-9">'+
-                        '<input type="text" id="post_source-'+id+'" name="post_source-'+id+'" style="width: 90%;" placeholder="Source URI of the post"/>'+
+                        '<input type="text" id="edit_post_source-'+id+'" name="post_source-'+id+'" style="width: 90%;" placeholder="Source URI of the post"/>'+
                     '</div>'+
                  '</div>'+
                  '<div class="form-group">'+
-                    '<label for="post_origin-'+id+'" class="col-sm-3">Origin of the Post: </label>'+
+                    '<label for="edit_post_origin-'+id+'" class="col-sm-3">Origin of the Post: </label>'+
                     '<div class="col-sm-9">'+
-                        '<input type="text" id="post_origin-'+id+'" name="post_origin-'+id+'" style="width: 90%;" placeholder="Origin of the post (URI)"/>'+
+                        '<input type="text" id="edit_post_origin-'+id+'" name="post_origin-'+id+'" style="width: 90%;" placeholder="Origin of the post (URI)"/>'+
                     '</div>'+
                  '</div>'+
                  '<div class="form-group">'+
-                    '<label for="post_category-'+id+'" class="col-sm-3">Category of the Post: </label>'+
+                    '<label for="edit_post_category-'+id+'" class="col-sm-3">Category of the Post: </label>'+
                     '<div class="col-sm-9">'+
-                        '<input type="text" id="post_category-'+id+'" name="post_category-'+id+'" style="width: 90%;" placeholder="(e.g. Medical, Health)"/>'+
+                        '<input type="text" id="edit_post_category-'+id+'" name="post_category-'+id+'" style="width: 90%;" placeholder="(e.g. Medical, Health)"/>'+
                     '</div>'+
                  '</div>'+
                             '<div class="form-group">'+
-                                '<label for="post_description-'+id+'" class="col-sm-3">Post Description:</label>'+
+                                '<label for="edit_post_description-'+id+'" class="col-sm-3">Post Description:</label>'+
                                 '<div class="col-sm-9">'+
-                                  '<input id="post_description-'+id+'" name="post_description-'+id+'" style="width: 90%;" placeholder="Description of the post"/>'+
+                                  '<input id="edit_post_description-'+id+'" name="post_description-'+id+'" style="width: 90%;" placeholder="Description of the post"/>'+
                                 '</div>'+
                             '</div>'+
                             '<div class="form-group">'+
                                 '<label for="edit_post_content-'+id+'" class="col-sm-3">Post Content:</label>'+
                                 '<div class="col-sm-9">'+
-                                  '<textarea id="edit_post_content-'+id+'" name="edit_post_content-'+id+'" style="width: 90%;"></textarea>'+
+                                  '<textarea id="edit_post_content-'+id+'" class="mceEditor" name="edit_post_content-'+id+'" style="width: 90%;"></textarea>'+
                                 '</div>'+
                             '</div>'+
                             '<div class="form-group">'+
@@ -214,5 +225,5 @@ function createForm(id)
                             '</div>'+
                         '</form>'+
                     '</div>');
-    return form;
+    $(form).appendTo($("#post_wall"));
 }

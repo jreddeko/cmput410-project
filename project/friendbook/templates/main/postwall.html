@@ -16,6 +16,7 @@
         <script type="text/javascript" src="{% static 'js/jquery/ui/jquery.ui.dialog.js' %}"></script>
         <script type="text/javascript">
             var userid = "{{ user_id }}";
+            
         </script>
     </head>
     <body>
@@ -61,7 +62,7 @@
                 </div>
                 </div><!-- /.blog-sidebar -->
                 {% for post in posts %}
-                <div class="col-sm-8 blog-main">
+                <div id="post_wall" class="col-sm-8 blog-main">
                     <div id="post-{{ post.guid }}"class="blog-post">
                         <button id="post_delete-{{ post.guid }}" type="button" class="btn btn-primary btn-lg post_buttons">
                             <span class="glyphicon glyphicon-trash"></span> Delete
@@ -96,7 +97,7 @@
                         {% endif %}
                         {% if post.description %}
                         <div id="post_description-{{ post.guid }}">
-                            <p class="blog-post-meta">Description of the Post: {{ post.description }}</p>
+                            <p class="blog-post-meta">Description of the Post: <span>{{ post.description }}</span></p>
                         </div>
                         {% endif %}
                         <div id="post_content-{{ post.guid }}" class="blog_content">
@@ -123,7 +124,7 @@
                                     <div class="form-group">
                                         <label for="comment_content-{{ post.guid }}" class="col-sm-3">Your comment:</label>
                                         <div class="col-sm-9">
-                                            <textarea id="comment_content-{{ post.guid }}" name="comment_content-{{ post.guid }}" style="width: 90%;"></textarea>
+                                            <textarea id="comment_content-{{ post.guid }}" class="mceNoEditor" name="comment_content-{{ post.guid }}" style="width: 90%;"></textarea>
                                         </div>
                                     </div>
                                 </form>
