@@ -2,28 +2,27 @@
  * Javascript used in postwall.html
  */
 $(document).ready(function (){
-    $(".overlayEdit").click(function() {
+    $(".post_buttons").click(function() {
         // reactivate the tinymce with the contents inside
         var currentdbId = $(this).attr("id").split("-")[1];
+                             
+        console.log($(this).text().trim());
         
-        text2form(currentdbId);
+        if($(this).text().trim() == "Edit")
+        {
+             text2form(currentdbId);
+             
+             $("#edit_cancel").click(function(e) {
+                 e.preventDefault();
+                 $("#post-"+currentdbId).css("display", "block");
+                 $("#edit_post-"+currentdbId).empty().remove();
+             });
+        }
+        else
+        {
+            alert("delete");
+        }
         
-        $("#edit_cancel").click(function(e) {
-            e.preventDefault();
-            $("#post-"+currentdbId).css("display", "block");
-            $("#edit_post-"+currentdbId).empty().remove();
-        });
-        
-    });
-    
-    tinymce.init({
-        selector: "textarea",
-        plugins: [
-            "advlist autolink lists link image charmap preview anchor",
-            "searchreplace visualblocks code fullscreen",
-            "insertdatetime media table contextmenu paste"
-        ],
-        toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
     });
 });
 

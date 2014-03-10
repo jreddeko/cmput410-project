@@ -1,4 +1,5 @@
 {% load static  %}
+{% load main_filters %}
 <html lang="en">
     <head>
         <meta charset="utf-8"/>
@@ -46,78 +47,111 @@
             </div>
             
             <div class="row">
+                <div class="col-sm-3 col-sm-offset-1 blog-sidebar list_friends">
+                    <div class="sidebar-module sidebar-module-inset">
+                        <h4>Friends</h4>
+                        <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;"/>
+                        <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;"/>
+                        <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;"/>
+                </div>
+                </div><!-- /.blog-sidebar -->
                 {% for post in posts %}
                 <div class="col-sm-8 blog-main">
                     <div id="post-{{ post.guid }}"class="blog-post">
-                        <h2 class="blog-post-title">{{ post.title }}</h2>
+                        <button id="post_delete-{{ post.guid }}" type="button" class="btn btn-primary btn-lg post_buttons">
+                            <span class="glyphicon glyphicon-trash"></span> Delete
+                        </button>
+                        <button id="post_edit-{{ post.guid }}" type="button" class="btn btn-primary btn-lg post_buttons">
+                            <span class="glyphicon glyphicon-pencil"></span> Edit
+                        </button>
+                        <h2 class="blog-post-title">{{ post.title|trim }}</h2>
                         {% if post.categories %}
                         <div id="post_category-{{ post.guid }}">
-                            <p class="blog-post-meta">Categories:
+                            <p class="blog-post-meta">Categories: <span>
                             {% for cat in post.categories %}
                                 {% if not forloop.last %}
-                                    <span>{{ cat }}<span>,
+                                    {{ cat|trim }},
                                 {% else %}
-                                    <span>{{ cat }}<span>
+                                    {{ cat|trim }}
                                 {% endif %}
                             {% endfor %}
+                            </span>
                             </p>
                         </div>
                         {% endif %}
                         {% if post.source %}
                         <div id="post_source-{{ post.guid }}">
-                            <p class="blog-post-meta" style="margin-bottom:2px;">Source: <span>{{ post.source }}<span></p>
+                            <p class="blog-post-meta" style="margin-bottom:2px;">Source: <span>{{ post.source|trim }}<span></p>
                         </div>
                         {% endif %}
                         {% if post.origin %}
                         <div id="post_origin-{{ post.guid }}">
-                            <p class="blog-post-meta">Origin: <span>{{ post.origin }}<span></p>
+                            <p class="blog-post-meta">Origin: <span>{{ post.origin|trim }}<span></p>
                         </div>
                         {% endif %}
                         {% if post.description %}
                         <div id="post_description-{{ post.guid }}">
-                            <p class="blog-post-meta">Description of the Post: {{ post.description }}</p>
+                            <p class="blog-post-meta">Description of the Post: {{ post.description|trim }}</p>
                         </div>
                         {% endif %}
                         <div id="post_content-{{ post.guid }}" class="blog_content">
                             {{ post.content | safe }}
                         </div>
                         <div id="post_author_info-{{ post.guid }}">
-                            <p class="blog-post-meta">Posted on {{post.pubDate}} by <a href="#">{{ post.author.displayname }}</a></p>
+                            <p class="blog-post-meta">Posted on {{post.pubDate|trim}} by <a href="#">{{ post.author.displayname|trim }}</a></p>
                         </div>
                         <!-- hidden div where it will be storing the permissions value from the DB. Needed when editting the post to load previous contents asynchronously -->
                         <input id="post_permission-{{ post.guid }}" type="hidden" value="{{ post.visibility }}"/>
+                        {% if post.comments %}
+                        {% for comment in post.comments %}
+                        <div id="post_comment-{{ comment.guid }}" class="well">
+                            <h4> Comments </h4>
+                            <hr/>
+                            <!-- test comments for display purposes -->
+                            <!-- TODO later this would be replaced with a for loop -->
+                            <div id="post_comment-{{ comment.guid }}" class="post_comments">
+                                <p> Test Comment 1</p>
+                                <p class="blog-post-meta">Commented by: Author1</p>
+                            </div>
+                            <hr/>
+                            <div id="post_comment-{{ comment.guid }}" class="post_comments">
+                                <p> Test Comment 2</p>
+                                <p class="blog-post-meta">Commented by: Author2</p>
+                            </div>
+                            <hr>
+                            <div id="post_new_comment">
+                                <form id="new_comment-{{ post.guid }}" class="form-horizontal" action="#" method="post">
+                                    <div class="form-group">
+                                        <label for="comment_content-{{ post.guid }}" class="col-sm-3">Your comment:</label>
+                                        <div class="col-sm-9">
+                                            <textarea id="comment_content-{{ post.guid }}" name="post_content-{{ post.guid }}" style="width: 90%;"></textarea>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div><!-- end of comments -->
+                        {% endfor %}
+                        {% else %}
+                        <div id="post_comment-{{ post.guid }}" class="well">
+                            <h4> Comments </h4>
+                            <hr/>
+                            <div id="post_new_comment">
+                                <form id="new_comment-{{ post.guid }}" class="form-horizontal" action="#" method="post">
+                                    <div class="form-group">
+                                        <label for="comment_content-{{ post.guid }}" class="col-sm-3">Your comment:</label>
+                                        <div class="col-sm-9">
+                                            <textarea id="comment_content-{{ post.guid }}" name="post_content-{{ post.guid }}" style="width: 90%;"></textarea>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div><!-- end of comments -->
+                        {% endif %}
                     </div><!-- end of post -->
-                    {% for comment in post.comments %}
-                    <div id="post_comment-{{ comment.guid }}" class="well">
-                        <h4> Comments </h4>
-                        <!-- test comments for display purposes -->
-                        <!-- TODO later this would be replaced with a for loop -->
-                        <div id="post_comment-{{ comment.guid }}" class="post_comments">
-                            <p> Test Comment 1</p>
-                            <p class="blog-post-meta">Commented by: Author1</p>
-                        </div>
-                        <hr/>
-                        <div id="post_comment-{{ comment.guid }}" class="post_comments">
-                            <p> Test Comment 2</p>
-                            <p class="blog-post-meta">Commented by: Author2</p>
-                        </div>
-                        <hr>
-                        <!--div id="post_new_comment">
-                         <form id="new_comment-postId" class="form-horizontal" action="#" method="post"
-                         </div-->
-                    </div><!-- end of comments -->
-                    {% endfor %}
+                    
                 </div><!-- /.blog-main -->
                 
                 {% endfor %}
-                <div class="col-sm-3 col-sm-offset-1 blog-sidebar list_friends">
-                    <div class="sidebar-module sidebar-module-inset">
-                        <h4>Friends</h4>
-                        <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;">
-                        <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;">
-                        <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;">
-                    </div>
-                </div><!-- /.blog-sidebar -->
             </div><!-- /.row -->
         </div><!-- /.container -->
         <div class="blog-footer">

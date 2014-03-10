@@ -186,4 +186,10 @@ h6, .h6 {
     margin: 0;
     width: 33%;
 }
+.post_buttons
+{
+    float: right;
+    margin-left: 2px;
+    margin-right: 2px;
+}
   
