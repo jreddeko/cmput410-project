@@ -2,11 +2,11 @@
  * Javascript used in postwall.html
  */
 $(document).ready(function (){
-    $(".post_buttons").click(function() {
+                  console.log(userid);
+    $(".post_buttons").click(function(e) {
+        e.preventDefault();
         // reactivate the tinymce with the contents inside
         var currentdbId = $(this).attr("id").split("-")[1];
-                             
-        console.log($(this).text().trim());
         
         if($(this).text().trim() == "Edit")
         {
@@ -18,13 +18,70 @@ $(document).ready(function (){
                  $("#edit_post-"+currentdbId).empty().remove();
              });
         }
-        else
+        else if($(this).text().trim() == "Delete")
         {
-            alert("delete");
+            deletePost(userid, currentdbId)
         }
-        
     });
 });
+
+function deletePost(userid, dbId)
+{
+    console.log(userid);
+    console.log(window.location.host);
+    
+    var dialogBox = $("<div id='deleteMessage' class='dialog'><p>Are you sure you want to delete this post?</p></div>");
+    $("#post-"+dbId).append(dialogBox);
+    $("#deleteMessage").dialog({
+       modal: true,
+       width: 300,
+       height: 'auto',
+       buttons: {
+           "Delete": function() {
+               $(this).dialog("close");
+               
+               // PUT and DELETE type is not supported by firefox
+               $.ajax({
+                  url: "http://"+window.location.host+"/author/"+userid+"/posts/"+dbId+"/",
+                  type: "POST",
+                  data: {"method": "delete"},
+                  success: function(data) {
+                      confirmationDialog(data);
+                  },
+                  error: function(jqXHR, textStatus, errorThrown) {
+                      console.log(jqXHR);
+                      console.log(textStatus);
+                      console.log(errorThrown);
+                  }
+                  
+                });
+           },
+           "Cancel" : function() {
+                $(this).dialog("close");
+                $("#deleteMessage").empty().remove();
+           }
+       }
+       
+    });
+}
+
+function confirmationDialog(message)
+{
+    var confirmDialog = $("<div id='confirmation' class='dialog'>"+message+"</div>");
+    $("body").append(confirmDialog);
+    $("#confirmation").dialog({
+           modal: false,
+           width: 300,
+           height: 'auto',
+           buttons: {
+               "Ok": function() {
+                    $(this).dialog("close");
+                               window.location.replace("http://"+window.location.host+"/wall");
+                }
+           }
+           
+    });
+}
 
 function text2form(currentdbId)
 {

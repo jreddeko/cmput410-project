@@ -86,7 +86,6 @@ def wall(request):
     
     if request.method == "POST":
         title = request.POST["post_title"]
-
         permission = request.POST["post_permissions"]
         source = request.POST["post_source"]
         origin = request.POST["post_origin"]
@@ -101,14 +100,14 @@ def wall(request):
         return redirect("wall")
     #GET request
     else:
-        userInfo = Users.objects.get(username=request.session["username"])
+        userInfo = Users.objects.get(username=request.session['username'])
         posts = Posts.objects.filter(owner_id=userInfo).order_by("-pub_date")
         currentHost = request.get_host()
         jsonResult = post2Json(currentHost, userInfo, posts)
         
         queryData = json.loads(jsonResult)
 
-        return render_to_response('main/postwall.html', {"posts":queryData})
+        return render_to_response('main/postwall.html', {"user_id": userInfo.id, "username": request.session['username'], "posts":queryData})
 
 def newpost(request):
     print "got new post"
@@ -272,7 +271,6 @@ def current_site_url():
 '''
 @csrf_exempt
 def post(request, user_id, post_id):
-    print request.method
     if request.method == 'GET':
         #need to add permission stuff when friends are implemented
         userInfo = Users.objects.get(id=user_id)
@@ -284,8 +282,23 @@ def post(request, user_id, post_id):
         # values included in the JSON result to be passed to the AJAX call
         return HttpResponse(jsonResult, content_type="application/json")
     elif request.method == 'POST':
+        # AJAX call by jQuery needs method to be POST to work so param
+        # is passed to identify the intended HTTP method
+        if request.POST["method"] == "delete":
+            #check if the user is admin/author of post
+            userInfo = Users.objects.get(id=user_id)
+            postInfo = Posts.objects.get(id=post_id)
+            
+            #server admins and the author has the permissions to delete the post
+            if userInfo.role == "Server Admin" or postInfo.owner_id.id == userInfo.id:
+                postInfo.delete()
+                print "author has permission"
+                return HttpResponse("<p>Post has been deleted.</p>", content_type="text/html")
+            else:
+                print "no permission"
+                return HttpResponse("<p>You do not have permission to delete this post.</p>", content_type="text/html")
         #modify post
-        doSOmething()
+#doSOmething()
     elif request.method == 'PUT':
         print "PUT Request!"
     elif request.method == 'DELETE':
@@ -294,7 +307,7 @@ def post(request, user_id, post_id):
         postInfo = Posts.objects.get(id=post_id)
         
         #server admins and the author has the permissions to delete the post
-        if userInfo.role == "Server Admin" or postInfo.owner_id == userInfo.id:
+        if userInfo.role == "Server Admin" or postInfo.owner_id.id == userInfo.id:
             postInfo.delete()
             return HttpResponse("<p>Post has been deleted.</p>", content_type="text/html")
         #user specified is not author/server admin, so give them a warning
