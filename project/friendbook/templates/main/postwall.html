@@ -14,10 +14,8 @@
         </script>
     </head>
     <body>
-        
         <div class="navbar-wrapper">
             <div class="container">
-                
                 <div class="navbar navbar-inverse navbar-static-top" role="navigation">
                     <div class="container">
                         <div class="navbar-header">
@@ -38,12 +36,9 @@
                         </div>
                     </div>
                 </div>
-                
             </div>
         </div>
-        
         <div class="container">
-            
             <div class="blog-header">
                 <!-- update Username to actual username when sessions are set. -->
                 <h1 class="blog-title">{{ request.session.username }}</h1>
@@ -84,9 +79,7 @@
                         </div>
                         <!-- hidden div where it will be storing the permissions value from the DB. Needed when editting the post to load previous contents asynchronously -->
                         <input id="post_permission-dbId" type="hidden" value="public"/>
-                        <!-- end of post -->
-                        <!-- start of comments -->
-                    </div>
+                    </div><!-- end of post -->
                     <div id="post_comment-dbId" class="well">
                             <h4> Comments </h4>
                             <!-- test comments for display purposes -->
@@ -104,10 +97,8 @@
                             <!--div id="post_new_comment">
                                 <form id="new_comment-postId" class="form-horizontal" action="#" method="post"
                             </div-->
-                        </div>
-                    </div><!-- /.blog-post -->
-                <!-- /.blog-main -->
-            </div>
+                        </div><!-- end of comments -->
+                </div><!-- /.blog-main -->
                 
                 <div class="col-sm-3 col-sm-offset-1 blog-sidebar list_friends">
                     <div class="sidebar-module sidebar-module-inset">
@@ -117,15 +108,10 @@
                         <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;">
                     </div>
                 </div><!-- /.blog-sidebar -->
-                </div>
-                
             </div><!-- /.row -->
-            
         </div><!-- /.container -->
-        
         <div class="blog-footer">
             <a href="#">Back to top</a>
         </div>
-        
     </body>
 </html>
