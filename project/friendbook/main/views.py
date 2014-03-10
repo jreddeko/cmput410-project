@@ -8,7 +8,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
 from django.db import IntegrityError
+<<<<<<< HEAD
 from main.models import Users, Posts, Friends
+=======
+from main.models import Users, Posts, Comment
+>>>>>>> 20498f149ab4a720b7db836b2c898b63f8b74b36
 import json
 import time
 from datetime import datetime
@@ -16,40 +20,44 @@ import urllib2
 
 @require_http_methods(["GET", "POST"])
 def index(request):
-  context = RequestContext(request)
-  
-  if (request.method == "GET"):
-    return render_to_response('main/index.html', context)
-  else:
-    if ("login" in request.POST):
-      username = request.POST["username"]
-      password = request.POST["password"]
+    context = RequestContext(request)
 
-      if (len(Users.objects.filter(username = username, password = password)) == 1):
-        request.session["loggedIn"] = True
-        request.session["username"] = username
-
-        return redirect("wall")
-      else:
-        return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
+    if (request.method == "GET"):
+        return render_to_response('main/index.html', context)
     else:
-      username = request.POST["username"]
-      password = request.POST["password"]
-      role = "Author"
-      registerDate = datetime.now().date()
-      active = 0
-      github = request.POST["github"]
+        if ("login" in request.POST):
+            username = request.POST["username"]
+            password = request.POST["password"]
+            
+            if (len(Users.objects.filter(username = username, password = password)) == 1):
+                if ((Users.objects.get(username = username, password = password)).active == 1):
+                  request.session["loggedIn"] = True
+                  request.session["username"] = username
+                
+                  return redirect("wall")
+                else:
+                  return render_to_response("main/index.html", {"loginError": "Error: you haven't been verified by the website admin yet"}, context)
+            else:
+                return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
+        else:
+            username = request.POST["username"]
+            password = request.POST["password"]
+            role = "Author"
+            registerDate = datetime.now().date()
+            active = 0
+            github = request.POST["github"]
+            
+            if ((username == "") or (password == "")):
+                return render_to_response('main/index.html', {"signupError": "Error: one or more missing fields"}, context)
+            
+            try:
+                newUser = Users(username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
+                newUser.save()
+            except IntegrityError as e:
+                return render_to_response('main/index.html', {"signupError": "Error: username already exists"}, context)
+            
+            return render_to_response('main/index.html', {"signupSuccess": "Successfully created an account! Before you can login, the website admin has to verify who you are"}, context)
 
-      if ((username == "") or (password == "")):
-        return render_to_response('main/index.html', {"signupError": "Error: one or more missing fields"}, context)
-
-      try:
-        newUser = Users(username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
-        newUser.save()
-      except IntegrityError as e:
-        return render_to_response('main/index.html', {"signupError": "Error: username already exists"}, context)
-
-      return render_to_response('main/index.html', {"signupSuccess": "Successfully created an account! Before you can login, the website admin has to verify who you are"}, context)
 
 @require_http_methods(["GET"])
 def logout(request):
@@ -78,11 +86,13 @@ def getGitHubEvents(userName):
     eventList = json.loads(response)
 
 @csrf_exempt
+@require_http_methods(["GET", "POST"])
 def wall(request):
     context = RequestContext(request)
+    userInfo = Users.objects.get(username=request.session["username"])
+    
     if request.method == "POST":
         title = request.POST["post_title"]
-        author_id = Users.objects.get(username=request.session["username"])
 
         permission = request.POST["post_permissions"]
         source = request.POST["post_source"]
@@ -93,20 +103,26 @@ def wall(request):
         content = request.POST["post_content"]
         pub_date = datetime.now().date()
 
-        post = Posts(title = title, source=source, origin=origin, category=category, description=description, content_type=content_type, content=content, owner_id=author_id, permission=permission, pub_date=pub_date, visibility = permission)
+        post = Posts(title = title, source=source, origin=origin, category=category, description=description, content_type=content_type, content=content, owner_id=userInfo, permission=permission, pub_date=pub_date, visibility = permission)
         post.save()
         return redirect("wall")
+    #GET request
     else:
-        #pull posts from db --> replace with restful service when it's done
+        userInfo = Users.objects.get(username=request.session["username"])
+        posts = Posts.objects.filter(owner_id=userInfo).order_by("-pub_date")
+        currentHost = request.get_host()
+        jsonResult = post2Json(currentHost, userInfo, posts)
         
-        
-        return render_to_response('main/postwall.html', context)
+        queryData = json.loads(jsonResult)
+
+        return render_to_response('main/postwall.html', {"posts":queryData})
 
 def newpost(request):
     context = RequestContext(request)
     return render_to_response('main/create_post.html', context)
 
 
+<<<<<<< HEAD
 def search_users(request):
     context = RequestContext(request)
     users = list(Users.objects.all())
@@ -122,35 +138,194 @@ def posts(request, username):
   if request.method == 'GET':
     print "restful get requested"
     getGitHubEvents(request.session["username"])
+=======
+'''
+    RESTful API for One author's posts
+>>>>>>> 20498f149ab4a720b7db836b2c898b63f8b74b36
     
+    This function is called when /author/<user_id>/posts is called with GET, POST,
+    PUT or DELETE HTTP requests and it shows information about author's
+    posts.
     
-    
-    # TODO: change this!! hard coded username for now for testing
-    userInfo = Users.objects.get(username=request.session["username"])
-    #TODO grab username from session later
-    return render(request, 'main/postwall.html', context)
-    #return HttpResponse(response_data)
-  elif request.method == 'POST':
-    print "restful POST requested"
-  else:
-    return HttpResponseNotAllowed
-
+    For GET requests, it returns all posts that the user has access to.
+    For POST requests, if an id is specified and if the post exists, then it
+    will update the post to newly given information in POST request body if 
+    the specified user is the author.  If the post does not exist in the
+    database, then it will create a new post with specified author as an author.
+    For PUT request, it will create the posts in the PUT request body.
+    For DELETE request, it will delete all posts that the specified user has
+    authored.
+'''
 @csrf_exempt
-def post (request, username,post_id):
-  print request.method
-  if request.method == 'GET':
-    reponse_data = serializers.serialize('json', Posts.objects.filter(owner_id=Users.objects.get(username=username)),use_natural_foreign_keys=True)
-    return HttpResponse(reponse_data)
-  elif request.method == 'POST':
-    #modify post
-    doSOmething()
-  elif request.method == 'DELETE':
-    #delete post
-    #eg curl -X DELETE http://localhost:8000/friendbook/user/jasonreddekopp/post/1/
-    Posts.objects.get(id=post_id).delete()
-    return HttpResponse("Post Deleted\n")
-  else: 
-    return HttpResponseNotAllowed
+def posts(request, user_id):#todo get rid of username (currently it throws an error)
+    context = RequestContext(request)
+    print request.method
+    if request.method == 'GET':
+        print "restful get requested"
+        getGitHubEvents(request.session["username"])
+        #need to add permission stuff when friends are implemented
+        userInfo = Users.objects.get(username=user_id)
+        posts = Posts.objects.filter(owner_id=userInfo).order_by("-pub_date")
+        currentHost = request.get_host()
+        jsonResult = post2Json(currentHost, userInfo, posts)
+        # must have content_type parameter to not include HTTPResponse
+        # values included in the JSON result to be passed to the AJAX call
+        return HttpResponse(jsonResult, content_type="application/json")
+    
+    elif request.method == 'POST':
+        print "restful POST requested"
+    elif request.method == 'PUT':
+        print "restful PUT requested"
+        #create post in db
+    elif request.method == 'DELETE':
+        #only system admin and the author can do this!
+        print "restful DELETE requested"
+    else:
+        return HttpResponseNotAllowed
+
+'''
+This method is called by posts to format the query result as desired JSON format
+as ones shown in example_article.json in project webisite:
+https://github.com/abramhindle/CMPUT404-project-socialdistribution/blob/master/example-article.json
+
+It takes the database query result and pases the QuerySet and create a properly formatted JSON object.
+
+@param querySet         django QuerySet object that is returned from database query to 
+                        posts table
+@return JSON object to be sent as a response to an AJAX call
+    
+'''
+def post2Json(host, userData, queryset):
+    # TODO Date format is currently wrong! May have to change
+    # the format when it's being inserted into DB
+    querylist = []
+    for queryResult in queryset:
+        user = {}
+        user["id"] = userData.id
+        # TODO change this when we are communicating with other servers
+        # they may have to specify their url?
+        user["host"] = host
+        user["displayname"] = userData.username
+        user["url"] = host+"/author/"+str(userData.id)
+        
+        post = {}
+        post["title"] = queryResult.title
+        post["source"] = queryResult.source
+        post["origin"] = queryResult.origin
+        post["description"] = queryResult.description
+        post["content_type"] = queryResult.content_type
+        post["content"] = queryResult.content
+        post["author"] = user
+        categories = queryResult.category.split(",")
+        post["categories"] = categories
+        comments = {}
+        commentObject = Comment.objects.filter(post_id=queryResult.id)
+        for commentResult in commentObject:
+            commentAuthor = {}
+            CommentAuthorInfo = Users.objects.get(id=commentResult.owner_id)
+            commentAuthor["id"] = CommentAuthorInfo.id
+            commentAuthor["host"] = host
+            commentAuthor["displayname"] = CommentAuthorInfo.username
+            comments["author"] = commentAuthor
+            comments["comment"] = commentResult.comment
+            comments["pubDate"] = commentResult.pub_date
+            #should be SHA1 or UUID encrypted?
+            comments["guid"] = commentResult.id
+        post["comments"] = comments
+        post["pubDate"] = queryResult.pub_date
+        #should be SHA1 or UUID encrypted?
+        post["guid"] = queryResult.id
+        post["visibility"] = queryResult.visibility
+        querylist.append(post)
+    return json.dumps(querylist, default=date_handler)
+
+'''
+date_handler function changes the date format to the one
+that can be serialized by the json python library
+
+@param obj      datetime object to be handled
+@return         date format that can be serialized by the json library
+
+'''
+# code taken from:
+# http://blog.codevariety.com/2012/01/06/python-serializing-dates-datetime-datetime-into-json/
+def date_handler(obj):
+    return obj.isoformat() if hasattr(obj, 'isoformat') else obj
+
+'''
+This method get the current host URL to be inserted into the database.
+The URL is in form of http://IP address or domain name:port
+'''
+# code from http://fragmentsofcode.wordpress.com/2009/02/24/django-fully-qualified-url/
+def current_site_url():
+    """Returns fully qualified URL (no trailing slash) for the current site."""
+    from django.contrib.sites.models import Site
+    current_site = Site.objects.get_current()
+    protocol = getattr(settings, 'MY_SITE_PROTOCOL', 'http')
+    port     = getattr(settings, 'MY_SITE_PORT', '')
+    url = '%s://%s' % (protocol, current_site.domain)
+    if port:
+        url += ':%s' % port
+    return url
+
+'''
+    RESTful API for getting information on one post specified in post_id
+    of the URI
+    
+    This function is called when /author/<user_id>/posts/<post_id> is called with GET, POST,
+    PUT or DELETE HTTP requests and it shows information about the specified post.
+    
+    For GET requests, it returns relevant information about the specified post.(the
+    user must have access to this post!)
+    For POST requests, if an id is specified and if the post exists, then it
+    will update the post to newly given information in POST request body if
+    the specified user is the author.  If the post does not exist in the
+    database, then it will create a new post with specified author as an author.
+    For PUT request, it will create a post in the PUT request body.
+    For DELETE request, it will delete all post if the user specified is an author of
+    the post.
+    
+    @param request      information on HTTP Request
+    @param user_id      (currently DB ID but should be SHA1 ID) of user in URI
+    @param post_id      (currently DB ID but should be SHA1 ID) of post in URI
+    
+    @return             For GET, JSON representation of specified post information
+                        FOR POST, message for either updated/added
+                        FOR PUT, message indicating insertion of new post
+                        For Delete, message indicating deletion of post
+'''
+@csrf_exempt
+def post(request, user_id, post_id):
+    print request.method
+    if request.method == 'GET':
+        #need to add permission stuff when friends are implemented
+        userInfo = Users.objects.get(id=user_id)
+        #used filter instead of get to use post2Json method
+        post = Posts.objects.filter(id=post_id)
+        currentHost = request.get_host()
+        jsonResult = post2Json(currentHost, userInfo, post)
+        # must have content_type parameter to not include HTTPResponse
+        # values included in the JSON result to be passed to the AJAX call
+        return HttpResponse(jsonResult, content_type="application/json")
+    elif request.method == 'POST':
+        #modify post
+        doSOmething()
+    elif request.method == 'PUT':
+        print "PUT Request!"
+    elif request.method == 'DELETE':
+        #check if the user is admin/author of post
+        userInfo = Users.objects.get(id=user_id)
+        postInfo = Posts.objects.get(id=post_id)
+        
+        #server admins and the author has the permissions to delete the post
+        if userInfo.role == "Server Admin" or postInfo.owner_id == userInfo.id:
+            postInfo.delete()
+            return HttpResponse("<p>Post has been deleted.</p>", content_type="text/html")
+        #user specified is not author/server admin, so give them a warning
+        else:
+            return HttpResponse("<p>You do not have permission to delete this post.</p>", content_type="text/html")
+    else:
+        return HttpResponseNotAllowed
 
 def images (request, username):
   if request.method == 'GET':
