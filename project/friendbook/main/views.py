@@ -80,47 +80,54 @@ def getGitHubEvents(userName):
     response = urllib2.urlopen("https://api.github.com/users/"+userName+"/events").read()
     eventList = json.loads(response)
 
+@csrf_exempt
 def wall(request):
     context = RequestContext(request)
-    return render_to_response('main/postwall.html', context)
+    if request.method == "POST":
+        title = request.POST["post_title"]
+        author_id = Users.objects.get(username=request.session["username"])
+
+        permission = request.POST["post_permissions"]
+        source = request.POST["post_source"]
+        origin = request.POST["post_origin"]
+        category = request.POST["post_category"]
+        description = request.POST["post_description"]
+        content_type = "text/html"
+        content = request.POST["post_content"]
+        pub_date = datetime.now().date()
+
+        post = Posts(title = title, source=source, origin=origin, category=category, description=description, content_type=content_type, content=content, owner_id=author_id, permission=permission, pub_date=pub_date, visibility = permission)
+        post.save()
+        return redirect("wall")
+    else:
+        #pull posts from db --> replace with restful service when it's done
+        
+        
+        return render_to_response('main/postwall.html', context)
 
 def newpost(request):
+    print "got new post"
     context = RequestContext(request)
     return render_to_response('main/create_post.html', context)
 
 @csrf_exempt
-def posts(request):
+def posts(request, username):
   context = RequestContext(request)
+  print request.method
   #return render_to_response('main/postwall.html', context)
   if request.method == 'GET':
-      #getGitHubEvents(username)
+    print "restful get requested"
+    getGitHubEvents(request.session["username"])
+    
+    
+    
     # TODO: change this!! hard coded username for now for testing
-    artifact = Users.objects.get(username=request.session["username"])
-    # later get db information here but no info yet
-    #response_data = serializers.serialize('json', Posts.objects.filter(owner_id=Users.objects.get(username=username)))
+    userInfo = Users.objects.get(username=request.session["username"])
     #TODO grab username from session later
     return render(request, 'main/postwall.html', context)
     #return HttpResponse(response_data)
   elif request.method == 'POST':
-    context = RequestContext(request)
-    print request.POST
-    title = request.POST["post_title"]
-    author_id = Users.objects.get(username=request.session["username"])
-    #author_id = Users.objects.get(username="gayoung")
-    print author_id
-    
-    permission = request.POST["post_permissions"]
-    source = request.POST["post_source"]
-    origin = request.POST["post_origin"]
-    category = request.POST["post_category"]
-    description = request.POST["post_description"]
-    content_type = "text/html"
-    content = request.POST["post_content"]
-    pub_date = datetime.now().date()
-    
-    post = Posts(title = title, source=source, origin=origin, category=category, description=description, content_type=content_type, content=content, owner_id=author_id, permission=permission, pub_date=pub_date, visibility = permission)
-    post.save()
-    render_to_response('main/postwall.html', context)
+    print "restful POST requested"
   else:
     return HttpResponseNotAllowed
 

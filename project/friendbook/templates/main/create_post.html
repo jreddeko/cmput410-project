@@ -52,7 +52,7 @@
                         </div>
                         <div class="navbar-collapse collapse">
                             <ul class="nav navbar-nav">
-                                <li><a href="{% url views.wall name='' %}">Post Wall</a></li>
+                                <li><a href="{% url 'wall' %}">Post Wall</a></li>
                                 <li class="active"><a href="#">Create Post</a></li>
                                 <li><a href="#contact">Contact</a></li>
                             </ul>
@@ -68,7 +68,7 @@
                 <div class="col-sm-12 blog-post">
                     <div class="well">
                         <h3>Create Post</h3>
-                        <form id="new_post" class="form-horizontal" action="{% url views.posts request.session.username %}" method="post">{% csrf_token %}
+                        <form id="new_post" class="form-horizontal" action="{% url 'wall' %}" method="POST">
                             <div class="form-group">
                                 <label for="post_permissions" class="col-sm-3">Permissions:</label>
                                 <div class="col-sm-9">
