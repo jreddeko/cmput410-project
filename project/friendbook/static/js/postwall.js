@@ -2,31 +2,6 @@
  * Javascript used in postwall.html
  */
 $(document).ready(function (){
-    getDbInfo(username);
-    $(".post-overlays").css("display", "none");
-    $(".blog-post").mouseover(function() {
-        var currentdivId = $(this).attr('id').split("-");
-        var overlayheight = $(this).height();
-        
-        var currentTop = $(this).position().top;
-         
-        $("#post_overlay-"+currentdivId[1]).css("top", currentTop);
-
-        $("#post_overlay-"+currentdivId[1]).css("display", "block");
-
-        $("#post_overlay-"+currentdivId[1]).stop(true, true).animate({
-            height: overlayheight+50
-        }, 1000); 
-    });
-    
-    $(".blog-post").mouseleave(function() {
-        var currentdivId = $(this).attr('id').split("-");
-        $("#post_overlay-"+currentdivId[1]).stop(true, true).animate({
-            height: "30px"
-        }, 300);
-        $("#post_overlay-"+currentdivId[1]).css("display", "none");
-    });
-    
     $(".overlayEdit").click(function() {
         // reactivate the tinymce with the contents inside
         var currentdbId = $(this).attr("id").split("-")[1];
@@ -35,33 +10,8 @@ $(document).ready(function (){
         
         $("#edit_cancel").click(function(e) {
             e.preventDefault();
-            $("#post_overlay-"+currentdbId).css("display", "block");
             $("#post-"+currentdbId).css("display", "block");
             $("#edit_post-"+currentdbId).empty().remove();
-            
-            // rebind mouse listener
-            $(".blog-post").mouseover(function() {
-                var currentdivId = $(this).attr('id').split("-");
-                var overlayheight = $(this).height();
-                
-                var currentTop = $(this).position().top;
-                 
-                $("#post_overlay-"+currentdivId[1]).css("top", currentTop);
-        
-                $("#post_overlay-"+currentdivId[1]).css("display", "block");
-        
-                $("#post_overlay-"+currentdivId[1]).stop(true, true).animate({
-                    height: overlayheight+50
-                }, 1000); 
-            });
-            
-            $(".blog-post").mouseleave(function() {
-                var currentdivId = $(this).attr('id').split("-");
-                $("#post_overlay-"+currentdivId[1]).stop(true, true).animate({
-                    height: "30px"
-                }, 300);
-                $("#post_overlay-"+currentdivId[1]).css("display", "none");
-            });
         });
         
     });
@@ -77,33 +27,8 @@ $(document).ready(function (){
     });
 });
 
-function getDbInfo(username)
-{
-    $.ajax({
-       url: 'http://127.0.0.1:8000/author/'+username+'/posts',
-       type: 'GET',
-       contentType: 'application/json',
-       dataType: 'json',
-       success: function(data){
-           alert(data)
-       //here you will get the data from server
-       },
-       error: function(jqXHR, textStatus, errorThrown){
-           console.log(jqXHR);
-           console.log(textStatus);
-           console.log(errorThrown);
-       }
-   })
-
-}
-
 function text2form(currentdbId)
 {
-    // remove overlay with button triggers
-        $("#post_overlay-"+currentdbId).unbind("mouseover");
-        $("#post_overlay-"+currentdbId).unbind("mouseleave");
-        $("#post_overlay-"+currentdbId).css("display", "none");
-        
         // get currently displayed contents of the post
         var headerContent = $("#post-"+currentdbId+" h2").first().text();
         var sourceContent = $("#post_source-"+currentdbId).find("span").first().text();

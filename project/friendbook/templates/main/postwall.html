@@ -45,61 +45,71 @@
                 <p class="lead blog-description">Welcome to social media!</p>
             </div>
             
-            <div class="row">  
+            <div class="row">
+                {% for post in posts %}
                 <div class="col-sm-8 blog-main">
-                    <div id="post-dbId"class="blog-post">
-                        <div id="post_overlay-dbId" class="post-overlays">
-                            <button class="btn btn-default btn-md post_overlayButtons overlayEdit" id="post_edti-dbId">Edit</button>
-                            <!-- TODO replace the href of the delete to webservice URI with DELETE HTTP request -->
-                            <a role="button" class="btn btn-default btn-md post_overlayButtons overlayDelete" href="">Delete</a>
+                    <div id="post-{{ post.guid }}"class="blog-post">
+                        <h2 class="blog-post-title">{{ post.title }}</h2>
+                        {% if post.categories %}
+                        <div id="post_category-{{ post.guid }}">
+                            <p class="blog-post-meta">Categories:
+                            {% for cat in post.categories %}
+                                {% if not forloop.last %}
+                                    <span>{{ cat }}<span>,
+                                {% else %}
+                                    <span>{{ cat }}<span>
+                                {% endif %}
+                            {% endfor %}
+                            </p>
                         </div>
-                        <h2 class="blog-post-title">Another blog post</h2>
-                        <div id="post_category-dbId">
-                            <p class="blog-post-meta">Categories: <span>Latin, Language<span></p>
+                        {% endif %}
+                        {% if post.source %}
+                        <div id="post_source-{{ post.guid }}">
+                            <p class="blog-post-meta" style="margin-bottom:2px;">Source: <span>{{ post.source }}<span></p>
                         </div>
-                        <div id="post_description-dbId">
-                            <p>Post description</p>
+                        {% endif %}
+                        {% if post.origin %}
+                        <div id="post_origin-{{ post.guid }}">
+                            <p class="blog-post-meta">Origin: <span>{{ post.origin }}<span></p>
                         </div>
-                        <div id="post_source-dbId">
-                            <p class="blog-post-meta">Source: <span>http://getbootstrap.com<span></p>
+                        {% endif %}
+                        {% if post.description %}
+                        <div id="post_description-{{ post.guid }}">
+                            <p class="blog-post-meta">Description of the Post: {{ post.description }}</p>
                         </div>
-                        <div id="post_origin-dbId">
-                            <p class="blog-post-meta">Origin: <span>http://getbootstrap.com<span></p>
+                        {% endif %}
+                        <div id="post_content-{{ post.guid }}" class="blog_content">
+                            {{ post.content | safe }}
                         </div>
-                        <div id="post_content-dbId" class="blog_content">
-                            <p>Cum sociis natoque penatibus et magnis <a href="#">dis parturient montes</a>, nascetur ridiculus mus. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Sed posuere consectetur est at lobortis. Cras mattis consectetur purus sit amet fermentum.</p>
-                            <blockquote>
-                                <p>Curabitur blandit tempus porttitor. <strong>Nullam quis risus eget urna mollis</strong> ornare vel eu leo. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-                            </blockquote>
-                            <p>Etiam porta <em>sem malesuada magna</em> mollis euismod. Cras mattis consectetur purus sit amet fermentum. Aenean lacinia bibendum nulla sed consectetur.</p>
-                            <p>Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.</p>
-                        </div>
-                        <div id="post_author_info-dbId">
-                            <p class="blog-post-meta">Posted on March 8, 2014 by <a href="#">Jacob</a></p>
+                        <div id="post_author_info-{{ post.guid }}">
+                            <p class="blog-post-meta">Posted on {{post.pubDate}} by <a href="#">{{ post.author.displayname }}</a></p>
                         </div>
                         <!-- hidden div where it will be storing the permissions value from the DB. Needed when editting the post to load previous contents asynchronously -->
-                        <input id="post_permission-dbId" type="hidden" value="public"/>
+                        <input id="post_permission-{{ post.guid }}" type="hidden" value="{{ post.visibility }}"/>
                     </div><!-- end of post -->
-                    <div id="post_comment-dbId" class="well">
-                            <h4> Comments </h4>
-                            <!-- test comments for display purposes -->
-                            <!-- TODO later this would be replaced with a for loop -->
-                            <div id="post_comment-commentdbId1" class="post_comments">
-                                <p> Test Comment 1</p>
-                                <p class="blog-post-meta">Commented by: Author1</p>
-                            </div>
-                            <hr/>
-                            <div id="post_comment-commentdbId2" class="post_comments">
-                                <p> Test Comment 2</p>
-                                <p class="blog-post-meta">Commented by: Author2</p>
-                            </div>
-                            <hr>
-                            <!--div id="post_new_comment">
-                                <form id="new_comment-postId" class="form-horizontal" action="#" method="post"
-                            </div-->
-                        </div><!-- end of comments -->
+                    {% for comment in post.comments %}
+                    <div id="post_comment-{{ comment.guid }}" class="well">
+                        <h4> Comments </h4>
+                        <!-- test comments for display purposes -->
+                        <!-- TODO later this would be replaced with a for loop -->
+                        <div id="post_comment-{{ comment.guid }}" class="post_comments">
+                            <p> Test Comment 1</p>
+                            <p class="blog-post-meta">Commented by: Author1</p>
+                        </div>
+                        <hr/>
+                        <div id="post_comment-{{ comment.guid }}" class="post_comments">
+                            <p> Test Comment 2</p>
+                            <p class="blog-post-meta">Commented by: Author2</p>
+                        </div>
+                        <hr>
+                        <!--div id="post_new_comment">
+                         <form id="new_comment-postId" class="form-horizontal" action="#" method="post"
+                         </div-->
+                    </div><!-- end of comments -->
+                    {% endfor %}
                 </div><!-- /.blog-main -->
                 
+                {% endfor %}
                 <div class="col-sm-3 col-sm-offset-1 blog-sidebar list_friends">
                     <div class="sidebar-module sidebar-module-inset">
                         <h4>Friends</h4>
