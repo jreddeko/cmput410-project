@@ -2,6 +2,7 @@
  * Javascript used in postwall.html
  */
 $(document).ready(function (){
+    getDbInfo(username);
     $(".post-overlays").css("display", "none");
     $(".blog-post").mouseover(function() {
         var currentdivId = $(this).attr('id').split("-");
@@ -75,6 +76,27 @@ $(document).ready(function (){
         toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
     });
 });
+
+function getDbInfo(username)
+{
+    $.ajax({
+       url: 'http://127.0.0.1:8000/author/'+username+'/posts',
+       type: 'GET',
+       contentType: 'application/json',
+       dataType: 'json',
+       success: function(data){
+           alert(data)
+       //here you will get the data from server
+       },
+       error: function(jqXHR, textStatus, errorThrown){
+           console.log(jqXHR);
+           console.log(textStatus);
+           console.log(errorThrown);
+       }
+   })
+
+}
+
 function text2form(currentdbId)
 {
     // remove overlay with button triggers

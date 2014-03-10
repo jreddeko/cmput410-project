@@ -100,9 +100,6 @@ def wall(request):
         post.save()
         return redirect("wall")
     else:
-        #pull posts from db --> replace with restful service when it's done
-        
-        
         return render_to_response('main/postwall.html', context)
 
 def newpost(request):
@@ -118,14 +115,12 @@ def posts(request, username):
   if request.method == 'GET':
     print "restful get requested"
     getGitHubEvents(request.session["username"])
-    
-    
-    
     # TODO: change this!! hard coded username for now for testing
     userInfo = Users.objects.get(username=request.session["username"])
-    #TODO grab username from session later
-    return render(request, 'main/postwall.html', context)
-    #return HttpResponse(response_data)
+    posts = Posts.objects.filter(owner_id=userInfo)
+    serialized_obj = serializers.serialize('json', posts)
+    return HttpResponse(serialized_obj)
+  
   elif request.method == 'POST':
     print "restful POST requested"
   else:

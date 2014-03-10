@@ -10,7 +10,7 @@
         <script type="text/javascript" src="{% static 'js/tinymce/tinymce.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/postwall.js' %}"></script>
         <script type="text/javascript">
-            
+            var username = "{{ request.session.username }}";
         </script>
     </head>
     <body>
