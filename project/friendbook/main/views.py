@@ -8,11 +8,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
 from django.db import IntegrityError
-<<<<<<< HEAD
-from main.models import Users, Posts, Friends
-=======
-from main.models import Users, Posts, Comment
->>>>>>> 20498f149ab4a720b7db836b2c898b63f8b74b36
+
+from main.models import Users, Posts, Comment , Friends
+
 import json
 import time
 from datetime import datetime
@@ -122,7 +120,7 @@ def newpost(request):
     return render_to_response('main/create_post.html', context)
 
 
-<<<<<<< HEAD
+
 def search_users(request):
     context = RequestContext(request)
     users = list(Users.objects.all())
@@ -138,7 +136,7 @@ def posts(request, username):
   if request.method == 'GET':
     print "restful get requested"
     getGitHubEvents(request.session["username"])
-=======
+
 '''
     RESTful API for One author's posts
 >>>>>>> 20498f149ab4a720b7db836b2c898b63f8b74b36
