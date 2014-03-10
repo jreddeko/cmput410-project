@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
 from django.db import IntegrityError
-from main.models import Users, Posts
+from main.models import Users, Posts, Friends
 import json
 import time
 from datetime import datetime
@@ -103,9 +103,16 @@ def wall(request):
         return render_to_response('main/postwall.html', context)
 
 def newpost(request):
-    print "got new post"
     context = RequestContext(request)
     return render_to_response('main/create_post.html', context)
+
+
+def search_users(request):
+    context = RequestContext(request)
+    users = list(Users.objects.all())
+    friends = list(Friends.objects.all())
+    me = request.session["username"]
+    return render_to_response('main/search_user.html',{'users': users, 'me': me, 'friends': friends }, context)
 
 @csrf_exempt
 def posts(request, username):
