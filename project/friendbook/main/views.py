@@ -79,13 +79,16 @@ def users(request):
   else:
     return HttpResponseNotAllowed
 
-def getGitHubEvents(userName):
-    response = urllib2.urlopen("https://api.github.com/users/"+userName+"/events").read()
-    jsonResponse = json.loads(response)
-    for item in jsonResponse:
-        item["pubDate"] = item["created_at"]
-        del item["created_at"]
-    return jsonResponse
+def getGitHubEvents(githubAccount):
+    if githubAccount:
+        response = urllib2.urlopen("https://api.github.com/users/"+githubAccount+"/events").read()
+        jsonResponse = json.loads(response)
+        for item in jsonResponse:
+            item["pubDate"] = item["created_at"]
+            del item["created_at"]
+        return jsonResponse
+    else:
+        return list()
 
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
@@ -109,7 +112,7 @@ def wall(request):
         return redirect("wall")
     #GET request
     else:
-        githubActivity = getGitHubEvents(request.session["username"])
+        githubActivity = getGitHubEvents(userInfo.github_account)
         userInfo = Users.objects.get(username=request.session['username'])
         posts = Posts.objects.filter(owner_id=userInfo).order_by("-pub_date")
         currentHost = request.get_host()
