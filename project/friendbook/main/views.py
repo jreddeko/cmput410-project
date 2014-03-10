@@ -28,7 +28,7 @@ def index(request):
       if (len(Users.objects.filter(username = username, password = password)) == 1):
         request.session["loggedIn"] = True
         request.session["username"] = username
-
+        
         return redirect("wall")
       else:
         return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
@@ -43,6 +43,19 @@ def index(request):
       if ((username == "") or (password == "")):
         return render_to_response('main/index.html', {"signupError": "Error: one or more missing fields"}, context)
 
+        return redirect("wall")
+      else:
+        return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
+    else:
+      username = request.POST["username"]
+      password = request.POST["password"]
+      role = "Author"
+      registerDate = datetime.now().date()
+      active = 0
+      github = request.POST["github"]
+
+      if ((username == "") or (password == "")):
+        return render_to_response('main/index.html', {"signupError": "Error: one or more missing fields"}, context)
       try:
         newUser = Users(username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
         newUser.save()
