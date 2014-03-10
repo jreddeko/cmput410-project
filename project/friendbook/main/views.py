@@ -8,7 +8,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
 from django.db import IntegrityError
-from main.models import Users, Posts, Comment
+
+from main.models import Users, Posts, Comment , Friends
+
 import json
 import time
 from datetime import datetime
@@ -26,10 +28,13 @@ def index(request):
             password = request.POST["password"]
             
             if (len(Users.objects.filter(username = username, password = password)) == 1):
-                request.session["loggedIn"] = True
-                request.session["username"] = username
+                if ((Users.objects.get(username = username, password = password)).active == 1):
+                  request.session["loggedIn"] = True
+                  request.session["username"] = username
                 
-                return redirect("wall")
+                  return redirect("wall")
+                else:
+                  return render_to_response("main/index.html", {"loginError": "Error: you haven't been verified by the website admin yet"}, context)
             else:
                 return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
         else:
@@ -110,13 +115,30 @@ def wall(request):
         return render_to_response('main/postwall.html', {"user_id": userInfo.id, "username": request.session['username'], "posts":queryData})
 
 def newpost(request):
-    print "got new post"
     context = RequestContext(request)
     return render_to_response('main/create_post.html', context)
 
 
+
+def search_users(request):
+    context = RequestContext(request)
+    users = list(Users.objects.all())
+    friends = list(Friends.objects.all())
+    me = request.session["username"]
+    return render_to_response('main/search_user.html',{'users': users, 'me': me, 'friends': friends }, context)
+
+@csrf_exempt
+def posts(request, username):
+  context = RequestContext(request)
+  print request.method
+  #return render_to_response('main/postwall.html', context)
+  if request.method == 'GET':
+    print "restful get requested"
+    getGitHubEvents(request.session["username"])
+
 '''
     RESTful API for One author's posts
+>>>>>>> 20498f149ab4a720b7db836b2c898b63f8b74b36
     
     This function is called when /author/<user_id>/posts is called with GET, POST,
     PUT or DELETE HTTP requests and it shows information about author's
