@@ -62,6 +62,7 @@
                 </div>
                 </div><!-- /.blog-sidebar -->
                 {% for post in posts %}
+<<<<<<< HEAD
                 <div id="post_wall" class="col-sm-8 blog-main">
                     <div id="post-{{ post.guid }}"class="blog-post">
                         <button id="post_delete-{{ post.guid }}" type="button" class="btn btn-primary btn-lg post_buttons">
@@ -105,18 +106,52 @@
                         </div>
                         <div id="post_author_info-{{ post.guid }}">
                             <p class="blog-post-meta">Posted on {{post.pubDate}} by <a href="#">{{ post.author.displayname }}</a></p>
-                        </div>
-                        <!-- hidden div where it will be storing the permissions value from the DB. Needed when editting the post to load previous contents asynchronously -->
-                        <input id="post_permission-{{ post.guid }}" type="hidden" value="{{ post.visibility }}"/>
-                        {% if post.comments %}
-                        <div id="post_comment-{{ post.guid }}" class="well">
-                            <h4> Comments </h4>
-                            <hr/>
-                            {% for comment in post.comments %}
-                                <div id="post_comment-{{ comment.guid }}" class="post_comments">
-                                    <p> {{ comment.comment }} </p>
-                                    <p class="blog-post-meta">Commented by: {{ comment.author.displayname }}</p>
+=======
+                <!--If it is a github event-->
+                    {% if post.type %}
+                        <div class="col-sm-8 blog-main">
+                            <div id="post-{{ post.guid }}"class="blog-post">
+                                <h2 class="blog-post-title">Github - {{ post.type}}</h2>
+                            
+                                <div id="post_content-{{ post.guid }}" class="blog_content">
+                                    <p>Repo: {{post.repo.name}}</p>
                                 </div>
+                                <div id="post_author_info-{{ post.guid }}">
+                                    <p class="blog-post-meta">Posted on {{post.pubDate}}</p>
+                                </div>
+                            </div>
+>>>>>>> 18f526be8223e36394872ec351a66838aefa104a
+                        </div>
+                <!--If it is not a github event, it is a post-->
+                    {% else %}
+                        <div class="col-sm-8 blog-main">
+                            <div id="post-{{ post.guid }}"class="blog-post">
+                                <button id="post_delete-{{ post.guid }}" type="button" class="btn btn-primary btn-lg post_buttons">
+                                    <span class="glyphicon glyphicon-trash"></span> Delete
+                                </button>
+                                <button id="post_edit-{{ post.guid }}" type="button" class="btn btn-primary btn-lg post_buttons">
+                                    <span class="glyphicon glyphicon-pencil"></span> Edit
+                                </button>
+                                <h2 class="blog-post-title">{{ post.title }}</h2>
+                                {% if post.categories %}
+                                <div id="post_category-{{ post.guid }}">
+                                    <p class="blog-post-meta">Categories: <span>
+                                    {% for cat in post.categories %}
+                                        {% if not forloop.last %}
+                                            {{ cat }},
+                                        {% else %}
+                                            {{ cat }}
+                                        {% endif %}
+                                    {% endfor %}
+                                    </span>
+                                    </p>
+                                </div>
+                                {% endif %}
+                                {% if post.source %}
+                                <div id="post_source-{{ post.guid }}">
+                                    <p class="blog-post-meta" style="margin-bottom:2px;">Source: <span>{{ post.source }}<span></p>
+                                </div>
+<<<<<<< HEAD
                             {% endfor %}
                             <hr/>
                             <div id="post_new_comment">
@@ -125,31 +160,69 @@
                                         <label for="comment_content-{{ post.guid }}" class="col-sm-3">Your comment:</label>
                                         <div class="col-sm-9">
                                             <textarea id="comment_content-{{ post.guid }}" class="mceNoEditor" name="comment_content-{{ post.guid }}" style="width: 90%;"></textarea>
+=======
+                                {% endif %}
+                                {% if post.origin %}
+                                <div id="post_origin-{{ post.guid }}">
+                                    <p class="blog-post-meta">Origin: <span>{{ post.origin }}<span></p>
+                                </div>
+                                {% endif %}
+                                {% if post.description %}
+                                <div id="post_description-{{ post.guid }}">
+                                    <p class="blog-post-meta">Description of the Post: {{ post.description }}</p>
+                                </div>
+                                {% endif %}
+                                <div id="post_content-{{ post.guid }}" class="blog_content">
+                                    {{ post.content | safe }}
+                                </div>
+                                <div id="post_author_info-{{ post.guid }}">
+                                    <p class="blog-post-meta">Posted on {{post.pubDate}} by <a href="#">{{ post.author.displayname }}</a></p>
+                                </div>
+                                <!-- hidden div where it will be storing the permissions value from the DB. Needed when editting the post to load previous contents asynchronously -->
+                                <input id="post_permission-{{ post.guid }}" type="hidden" value="{{ post.visibility }}"/>
+                                {% if post.comments %}
+                                <div id="post_comment-{{ post.guid }}" class="well">
+                                    <h4> Comments </h4>
+                                    <hr/>
+                                    {% for comment in post.comments %}
+                                        <div id="post_comment-{{ comment.guid }}" class="post_comments">
+                                            <p> {{ comment.comment }} </p>
+                                            <p class="blog-post-meta">Commented by: {{ comment.author.displayname }}</p>
+>>>>>>> 18f526be8223e36394872ec351a66838aefa104a
                                         </div>
+                                    {% endfor %}
+                                    <hr/>
+                                    <div id="post_new_comment">
+                                        <form id="new_comment-{{ post.guid }}" class="form-horizontal" action="#" method="post">
+                                            <div class="form-group">
+                                                <label for="comment_content-{{ post.guid }}" class="col-sm-3">Your comment:</label>
+                                                <div class="col-sm-9">
+                                                    <textarea id="comment_content-{{ post.guid }}" name="comment_content-{{ post.guid }}" style="width: 90%;"></textarea>
+                                                </div>
+                                            </div>
+                                        </form>
                                     </div>
-                                </form>
-                            </div>
-                        </div><!-- end of comments -->
-                        {% else %}
-                        <div id="post_comment-{{ post.guid }}" class="well">
-                            <h4> Comments </h4>
-                            <hr/>
-                            <div id="post_new_comment">
-                                <form id="new_comment-{{ post.guid }}" class="form-horizontal" action="#" method="post">
-                                    <div class="form-group">
-                                        <label for="comment_content-{{ post.guid }}" class="col-sm-3">Your comment:</label>
-                                        <div class="col-sm-9">
-                                            <textarea id="comment_content-{{ post.guid }}" name="post_content-{{ post.guid }}" style="width: 90%;"></textarea>
-                                        </div>
+                                </div><!-- end of comments -->
+                                {% else %}
+                                <div id="post_comment-{{ post.guid }}" class="well">
+                                    <h4> Comments </h4>
+                                    <hr/>
+                                    <div id="post_new_comment">
+                                        <form id="new_comment-{{ post.guid }}" class="form-horizontal" action="#" method="post">
+                                            <div class="form-group">
+                                                <label for="comment_content-{{ post.guid }}" class="col-sm-3">Your comment:</label>
+                                                <div class="col-sm-9">
+                                                    <textarea id="comment_content-{{ post.guid }}" name="post_content-{{ post.guid }}" style="width: 90%;"></textarea>
+                                                </div>
+                                            </div>
+                                        </form>
                                     </div>
-                                </form>
-                            </div>
-                        </div><!-- end of comments -->
-                        {% endif %}
-                    </div><!-- end of post -->
-                    
-                </div><!-- /.blog-main -->
-                
+                                </div><!-- end of comments -->
+                                {% endif %}
+                            </div><!-- end of post -->
+                            
+                        </div><!-- /.blog-main -->
+                    {% endif %}
                 {% endfor %}
             </div><!-- /.row -->
         </div><!-- /.container -->

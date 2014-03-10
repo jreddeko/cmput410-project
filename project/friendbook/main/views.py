@@ -79,9 +79,16 @@ def users(request):
   else:
     return HttpResponseNotAllowed
 
-def getGitHubEvents(userName):
-    response = urllib2.urlopen("https://api.github.com/users/"+userName+"/events").read()
-    eventList = json.loads(response)
+def getGitHubEvents(githubAccount):
+    if githubAccount:
+        response = urllib2.urlopen("https://api.github.com/users/"+githubAccount+"/events").read()
+        jsonResponse = json.loads(response)
+        for item in jsonResponse:
+            item["pubDate"] = item["created_at"]
+            del item["created_at"]
+        return jsonResponse
+    else:
+        return list()
 
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
@@ -105,14 +112,16 @@ def wall(request):
         return redirect("wall")
     #GET request
     else:
+        githubActivity = getGitHubEvents(userInfo.github_account)
         userInfo = Users.objects.get(username=request.session['username'])
         posts = Posts.objects.filter(owner_id=userInfo).order_by("-pub_date")
         currentHost = request.get_host()
         jsonResult = post2Json(currentHost, userInfo, posts)
         
         queryData = json.loads(jsonResult)
-
-        return render_to_response('main/postwall.html', {"user_id": userInfo.id, "username": request.session['username'], "posts":queryData})
+        mergedList = githubActivity + queryData
+        mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
+        return render_to_response('main/postwall.html', {"user_id": userInfo.id, "username": request.session['username'], "posts":mergedList})
 
 def newpost(request):
     context = RequestContext(request)
@@ -134,7 +143,7 @@ def posts(request, username):
   #return render_to_response('main/postwall.html', context)
   if request.method == 'GET':
     print "restful get requested"
-    getGitHubEvents(request.session["username"])
+
 
 '''
     RESTful API for One author's posts
