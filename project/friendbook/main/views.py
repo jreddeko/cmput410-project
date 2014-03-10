@@ -26,10 +26,13 @@ def index(request):
             password = request.POST["password"]
             
             if (len(Users.objects.filter(username = username, password = password)) == 1):
-                request.session["loggedIn"] = True
-                request.session["username"] = username
+                if ((Users.objects.get(username = username, password = password)).active == 1):
+                  request.session["loggedIn"] = True
+                  request.session["username"] = username
                 
-                return redirect("wall")
+                  return redirect("wall")
+                else:
+                  return render_to_response("main/index.html", {"loginError": "Error: you haven't been verified by the website admin yet"}, context)
             else:
                 return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
         else:
