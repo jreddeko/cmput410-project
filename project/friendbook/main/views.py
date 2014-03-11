@@ -183,13 +183,16 @@ def wall(request):
 def newpost(request):
     context = RequestContext(request)
     return render_to_response('main/create_post.html', context)
-'''Displays all users within the system and '''
+
+'''Displays all users within the system and as users as friends'''
 def search_users(request):
     context = RequestContext(request)
+    me = request.session["username"]
     users = list(Users.objects.all())
     friends = list(Friends.objects.all())
-    me = request.session["username"]
-    return render_to_response('main/search_user.html',{'users': users, 'me': me, 'friends': friends }, context)
+    friend_check = [x.username2.username for x in friends if x.username1.username == me]	
+    
+    return render_to_response('main/search_user.html',{'users': users, 'me': me, 'friends': friends,'check': friend_check }, context)
 
 
 def friendship(request):

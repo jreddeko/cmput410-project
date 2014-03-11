@@ -67,8 +67,10 @@
                 {{ user.username }}:
                 <form  action="{% url 'friendship' %}" method="post">
                     {% csrf_token %}
+	            {% if user.username not in check %}
                     <input type="hidden" name="friendname" value="{{ user.username }}">
                     <input type="submit" value="Add As Friend">
+		    {% endif %}
                 </form>
              {% endif %}
             {% endfor %} 
