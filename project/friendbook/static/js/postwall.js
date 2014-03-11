@@ -9,13 +9,33 @@ $(document).ready(function (){
                              
         if($(this).text().trim() == "Edit")
         {
-             text2form(currentdbId);
+            if($(".edit_enabled").length >  0)
+             {
+                 var confirmDialog = $("<div id='confirmation' class='dialog'><p>Please save your other post in editting process before editting another post.</o></div>");
+                 $("body").append(confirmDialog);
+                 $("#confirmation").dialog({
+                   modal: false,
+                   width: 300,
+                   height: 'auto',
+                   buttons: {
+                        "Ok": function() {
+                            $(this).dialog("close");
+                        }
+                   }
+                   
+                });
+             }
+             else
+             {
+                text2form(currentdbId);
              
-             $("#edit_cancel").click(function(e) {
-                 e.preventDefault();
-                 $("#post-"+currentdbId).css("display", "block");
-                 $("#edit_post-"+currentdbId).empty().remove();
-             });
+                $("#edit_cancel").click(function(e) {
+                     e.preventDefault();
+                     $("#post-"+currentdbId).css("display", "block");
+                     $("#edit_post-"+currentdbId).empty().remove();
+                });
+             }
+             
         }
         else if($(this).text().trim() == "Delete")
         {
@@ -158,13 +178,13 @@ function text2form(currentdbId)
 
 function createForm(id)
 {
-    var form = $('<div id="edit_post-'+id+'" class="well">'+
+    var form = $('<div id="edit_post-'+id+'" class="edit_enabled"class="well">'+
                     '<h3>Edit Post</h3>'+
                     '<form class="form-horizontal" action="" method="POST">'+
                         '<div class="form-group">'+
                             '<label for="post_permissions" class="col-sm-3">Permissions:</label>'+
                             '<div class="col-sm-9">'+
-                                '<select id="edit_post_permissions-'+id+'" name="post_permissions-"'+id+' class="col-sm-9 form-control" style="width: 90%;">'+
+                                '<select id="edit_post_permissions-'+id+'" name="post_permissions-'+id+'" class="col-sm-9 form-control" style="width: 90%;">'+
                                     '<option value="private" selected="selected">Private</option>'+
                                         '<option value="spec_author">Specify</option>'+
                                         '<option value="friends">Friends</option>'+
@@ -213,7 +233,7 @@ function createForm(id)
                             '<div class="form-group">'+
                                 '<label for="edit_post_content-'+id+'" class="col-sm-3">Post Content:</label>'+
                                 '<div class="col-sm-9">'+
-                                  '<textarea id="edit_post_content-'+id+'" class="mceEditor" name="edit_post_content-'+id+'" style="width: 90%;"></textarea>'+
+                                  '<textarea id="edit_post_content-'+id+'" class="mceEditor" name="post_content-'+id+'" style="width: 90%;"></textarea>'+
                                 '</div>'+
                             '</div>'+
                             '<div class="form-group">'+

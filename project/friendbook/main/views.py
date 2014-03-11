@@ -97,18 +97,52 @@ def wall(request):
     userInfo = Users.objects.get(username=request.session["username"])
     
     if request.method == "POST":
-        title = request.POST["post_title"]
-        permission = request.POST["post_permissions"]
-        source = request.POST["post_source"]
-        origin = request.POST["post_origin"]
-        category = request.POST["post_category"]
-        description = request.POST["post_description"]
-        content_type = "text/html"
-        content = request.POST["post_content"]
-        pub_date = datetime.now().date()
+        for key, value in request.POST.iteritems():
+            dbIdInfo = key.split("-");
+            break;
+        
+        #creating post POST method
+        if len(dbIdInfo) == 1:
+            title = request.POST["post_title"]
+            permission = request.POST["post_permissions"]
+            source = request.POST["post_source"]
+            origin = request.POST["post_origin"]
+            category = request.POST["post_category"]
+            description = request.POST["post_description"]
+            content_type = "text/html"
+            content = request.POST["post_content"]
+            pub_date = datetime.now().date()
+        
+            post = Posts(title = title, source=source, origin=origin, category=category, description=description, content_type=content_type, content=content, owner_id=userInfo, permission=permission, pub_date=pub_date, visibility = permission)
+            post.save()
+        #editting post POST method
+        else:
+            title = request.POST["post_title-"+dbIdInfo[1]]
+            permission = request.POST["post_permissions-"+dbIdInfo[1]]
+            source = request.POST["post_source-"+dbIdInfo[1]]
+            origin = request.POST["post_origin-"+dbIdInfo[1]]
+            category = request.POST["post_category-"+dbIdInfo[1]]
+            description = request.POST["post_description-"+dbIdInfo[1]]
+            content_type = "text/html"
+            content = request.POST["post_content-"+dbIdInfo[1]]
+            pub_date = datetime.now().date()
 
-        post = Posts(title = title, source=source, origin=origin, category=category, description=description, content_type=content_type, content=content, owner_id=userInfo, permission=permission, pub_date=pub_date, visibility = permission)
-        post.save()
+            old_post = Posts.objects.get(id=int(dbIdInfo[1]))
+        
+            old_post.title = title
+            old_post.permission = permission
+            old_post.source = source
+            old_post.origin = origin
+            old_post.category = category
+            old_post.description = description
+            old_post.content_type = "text/html"
+            old_post.content = content
+            old_post.owner_id = userInfo
+            pub_date = datetime.now().date()
+            visibility = permission
+        
+            old_post.save()
+
         return redirect("wall")
     #GET request
     else:
@@ -147,7 +181,6 @@ def posts(request, username):
 
 '''
     RESTful API for One author's posts
->>>>>>> 20498f149ab4a720b7db836b2c898b63f8b74b36
     
     This function is called when /author/<user_id>/posts is called with GET, POST,
     PUT or DELETE HTTP requests and it shows information about author's
