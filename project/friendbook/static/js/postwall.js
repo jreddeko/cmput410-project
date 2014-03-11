@@ -46,9 +46,16 @@ $(document).ready(function (){
 });
 
 /**
+ *  This javascript method is called when the delete button is triggered
+ *  on top of the post div.  It will call an jQuery UI Dialog to confirm
+ *  the deletion with the user and upon user's confirmation, it will delete
+ *  the post.  The database record is deleted by an ajax call to the
+ *  webservices host/authors/username/posts/post_id
  *
+ *  @param username         the username stored in the session
+ *  @param dbId             the database ID of the post being triggered for delete
  */
-function deletePost(userid, dbId)
+function deletePost(username, dbId)
 {
     var dialogBox = $("<div id='deleteMessage' class='dialog'><p>Are you sure you want to delete this post?</p></div>");
     $("#post-"+dbId).append(dialogBox);
@@ -62,7 +69,7 @@ function deletePost(userid, dbId)
                
                // PUT and DELETE type is not supported by firefox
                $.ajax({
-                  url: "http://"+window.location.host+"/author/"+userid+"/posts/"+dbId+"/",
+                  url: "http://"+window.location.host+"/author/"+username+"/posts/"+dbId+"/",
                   type: "POST",
                   data: {"method": "delete"},
                   success: function(data) {
@@ -85,6 +92,14 @@ function deletePost(userid, dbId)
     });
 }
 
+/**
+ * This javascript function creates a jQuery UI dialog to notify the
+ * the user that the post has been deleted from the database.  This
+ * function is triggered from above method when the user triggers
+ * the "Delete" button in the dialog.
+ *
+ * @param message   the mesage that will be shown to the user.
+ */
 function confirmationDialog(message)
 {
     var confirmDialog = $("<div id='confirmation' class='dialog'>"+message+"</div>");
@@ -103,25 +118,33 @@ function confirmationDialog(message)
     });
 }
 
+/**
+ *  This function is used to create form and load the existing post data
+ *  to be editted.  It is triggered by the Edit button on top of the post
+ *  div.
+ *  
+ *  @param currentdbId  the database ID associated with the currently being editted post
+ */
 function text2form(currentdbId)
 {
-        // get currently displayed contents of the post
-        var headerContent = $("#post-"+currentdbId+" h2").first().text();
-        var sourceContent = $("#post_source-"+currentdbId).find("span").first().text();
-        var originContent = $("#post_origin-"+currentdbId).find("span").first().text();
-        var categoryContent = $("#post_category-"+currentdbId).find("span").first().text();
-        var description = $("#post_description-"+currentdbId).find("span").first().text();
-        var bodyContent = '';
-        $("#post_content-"+currentdbId).children().each(function() {
-            if(this.tagName != "h2")
-            {
-                bodyContent += $(this).html();
-            }
-        });
-        var permissionValue = $("#post_permission-"+currentdbId).val();
-        
+    // get currently displayed contents of the post
+    var headerContent = $("#post-"+currentdbId+" h2").first().text();
+    var sourceContent = $("#post_source-"+currentdbId).find("span").first().text();
+    var originContent = $("#post_origin-"+currentdbId).find("span").first().text();
+    var categoryContent = $("#post_category-"+currentdbId).find("span").first().text();
+    var description = $("#post_description-"+currentdbId).find("span").first().text();
+    var bodyContent = '';
+    $("#post_content-"+currentdbId).children().each(function() {
+        if(this.tagName != "h2")
+        {
+            bodyContent += $(this).html();
+        }
+    });
+    var permissionValue = $("#post_permission-"+currentdbId).val();
+    
         createForm(currentdbId);
     
+    // initialize the tinyMCE editor for the newly added textarea and load the content
     $("#edit_post_content-"+currentdbId).ready(function() {
          tinymce.init({
               mode: "exact",
@@ -145,37 +168,44 @@ function text2form(currentdbId)
     
     $("#spec_author_div-"+currentdbId).hide();
     
-        $("#post_title-"+currentdbId).val(headerContent);
-        $("#edit_post_source-"+currentdbId).val(sourceContent);
-        $("#edit_post_origin-"+currentdbId).val(originContent);
-        // categories has giant gaps! need to trim all!
-        var processedCategories = categoryContent.split(",");
-        var newCategoryString = processedCategories[0].trim();
-    
-        for (var i=1; i < processedCategories.length; i++)
-        {
-            newCategoryString += ", "+processedCategories[i].trim();
-        }
-        $("#edit_post_category-"+currentdbId).val(newCategoryString);
+    $("#post_title-"+currentdbId).val(headerContent);
+    $("#edit_post_source-"+currentdbId).val(sourceContent);
+    $("#edit_post_origin-"+currentdbId).val(originContent);
+    // categories has giant gaps! need to trim all!
+    var processedCategories = categoryContent.split(",");
+    var newCategoryString = processedCategories[0].trim();
 
-        $('select#post_permissions-'+currentdbId).children().each(function() {
-            var currentVal = $(this).attr("value");
-            if(currentVal.trim() == permissionValue.trim())
+    for (var i=1; i < processedCategories.length; i++)
+    {
+        newCategoryString += ", "+processedCategories[i].trim();
+    }
+    $("#edit_post_category-"+currentdbId).val(newCategoryString);
+
+    $('select#post_permissions-'+currentdbId).children().each(function() {
+        var currentVal = $(this).attr("value");
+        if(currentVal.trim() == permissionValue.trim())
+        {
+            $("#edit_post_permission-"+currentdbId).val(3)
+        }
+        else
+        {
+            if($(this).attr("selected") ==  "selected")
             {
-                $("#edit_post_permission-"+currentdbId).val(3)
+                $(this).removeAttr("selected");
             }
-            else
-            {
-                if($(this).attr("selected") ==  "selected")
-                {
-                    $(this).removeAttr("selected");
-                }
-            }
-        });
-        
-        $("#edit_post_description-"+currentdbId).val(description);
+        }
+    });
+    
+    $("#edit_post_description-"+currentdbId).val(description);
 }
 
+/**
+ * This method creates the form needed to edit the post.
+ * It is called by the above method to create the form before
+ * populating it with exisiting data.
+ *
+ * @param id    database ID that is associated with the current post
+ */
 function createForm(id)
 {
     var form = $('<div id="edit_post-'+id+'" class="edit_enabled"class="well">'+
