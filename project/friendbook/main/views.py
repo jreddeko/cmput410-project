@@ -183,14 +183,24 @@ def wall(request):
 def newpost(request):
     context = RequestContext(request)
     return render_to_response('main/create_post.html', context)
-
+'''Displays all users within the system and '''
 def search_users(request):
+    print "hi"
     context = RequestContext(request)
     users = list(Users.objects.all())
     friends = list(Friends.objects.all())
     me = request.session["username"]
     return render_to_response('main/search_user.html',{'users': users, 'me': me, 'friends': friends }, context)
 
+'''Incomplete'''
+def friends(request):
+    context = RequestContext(request)
+    username1 = request.session["username"]
+    username2 = request.POST["friendname"]
+    accept = 1
+    friends = Friends(username1 = username1, username2=username2, accept=accept)
+    print friends.save()
+    return redirect("search_users")
 '''
     RESTful API for One author's posts
     

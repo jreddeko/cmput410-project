@@ -45,7 +45,9 @@
         <div class="container">
             <div class="notif">
                 <h4>New Requests:</h4>
-                <form  action="" method="get">
+                <h6>Coming Soon...</h6>
+                <form  action="{% url 'friends' %}" method="get">
+                    {% csrf_token %}
             {% for friend in friends %}
                 {% if friend.username2 = me  %}
                 {{ user.username1 }}:
@@ -58,15 +60,19 @@
         </div>
         <div class="container">
             <h4>All Users:</h4>
-            <form  action="" method="get">
+            
             {% for user in users %}
+                
                 {% if user.username != me %}
                 {{ user.username }}:
-            
-                <input type="submit" value="Add As Friend">
+                <form  action="{% url 'friends' %}" method="get">
+                    {% csrf_token %}
+                    <input type="hidden" name="friendname" value="{{ user.username }}">
+                    <input type="submit" value="Add As Friend">
+                </form>
              {% endif %}
             {% endfor %} 
-            </form>
+            
         </div><!-- /.container -->
         
         <div class="blog-footer">
