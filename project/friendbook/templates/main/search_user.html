@@ -46,7 +46,7 @@
             <div class="notif">
                 <h4>New Requests:</h4>
                 <h6>Coming Soon...</h6>
-                <form  action="{% url 'friends' %}" method="get">
+                <form  action="{% url 'friendship' %}" method="get">
                     {% csrf_token %}
             {% for friend in friends %}
                 {% if friend.username2 = me  %}
@@ -65,10 +65,12 @@
                 
                 {% if user.username != me %}
                 {{ user.username }}:
-                <form  action="{% url 'friends' %}" method="get">
+                <form  action="{% url 'friendship' %}" method="post">
                     {% csrf_token %}
+	            {% if user.username not in check %}
                     <input type="hidden" name="friendname" value="{{ user.username }}">
                     <input type="submit" value="Add As Friend">
+		    {% endif %}
                 </form>
              {% endif %}
             {% endfor %} 

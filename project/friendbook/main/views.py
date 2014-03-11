@@ -183,22 +183,27 @@ def wall(request):
 def newpost(request):
     context = RequestContext(request)
     return render_to_response('main/create_post.html', context)
-'''Displays all users within the system and '''
+
+'''Displays all users within the system and as users as friends'''
 def search_users(request):
-    print "hi"
     context = RequestContext(request)
+    me = request.session["username"]
     users = list(Users.objects.all())
     friends = list(Friends.objects.all())
-    me = request.session["username"]
-    return render_to_response('main/search_user.html',{'users': users, 'me': me, 'friends': friends }, context)
+    friend_check = [x.username2.username for x in friends if x.username1.username == me]	
+    
+    return render_to_response('main/search_user.html',{'users': users, 'me': me, 'friends': friends,'check': friend_check }, context)
 
-'''Incomplete'''
-def friends(request):
+
+def friendship(request):
     context = RequestContext(request)
+
     username1 = request.session["username"]
+    user1 = Users.objects.get(username=username1)
     username2 = request.POST["friendname"]
+    user2 = Users.objects.get(username=username2)
     accept = 1
-    friends = Friends(username1 = username1, username2=username2, accept=accept)
+    friends = Friends.objects.create(username1 = user1, username2=user2, accept=accept)
     print friends.save()
     return redirect("search_users")
 '''
