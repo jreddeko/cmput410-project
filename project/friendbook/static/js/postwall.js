@@ -39,7 +39,7 @@ $(document).ready(function (){
         }
         else if($(this).text().trim() == "Delete")
         {
-            deletePost(userid, currentdbId)
+            deletePost(username, currentdbId)
         }
     });
                   

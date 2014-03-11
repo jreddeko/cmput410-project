@@ -501,7 +501,7 @@ def post(request, username, post_id):
         # AJAX call by jQuery needs method to be POST to work so param
         # is passed to identify the intended HTTP method
         print type(request.POST)
-        if type(request.POST) is dict:
+        if "method" in request.POST:
             if request.POST["method"] == "delete":
                 #check if the user is admin/author of post
                 userInfo = Users.objects.get(username=username)
