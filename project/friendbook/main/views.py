@@ -232,6 +232,56 @@ def posts(request, username):
     
     elif request.method == 'POST':
         print "restful POST requested"
+        try:
+            userInfo = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            return HttpResponse("<p>Username specified does not existin the databasee</p>\r\n", content_type="text/html")
+        postList = json.loads(request.body).get("posts")
+        errorMessage = []
+        for post in postList:
+            postId = post["guid"]
+            try:
+                old_post = Posts.objects.get(id=postId)
+                title = post["title"]
+                origin = post["origin"]
+                source = post["source"]
+                description = post["description"]
+                contentType = post["content_type"]
+                content = post["content"]
+                categories = ",".join(post["categories"])
+                pubDate = datetime.now().date()
+                permission = post["visibility"]
+                visibility = post["visibility"]
+                
+                old_post.title = title
+                old_post.permission = permission
+                old_post.source = source
+                old_post.origin = origin
+                old_post.category = categories
+                old_post.description = description
+                old_post.content_type = "text/html"
+                old_post.content = content
+                old_post.owner_id = userInfo
+                old_post.pub_date = datetime.now().date()
+                old_post.visibility = permission
+                
+                old_post.save()
+            except ObjectDoesNotExist:
+                title = post["title"]
+                origin = post["origin"]
+                source = post["source"]
+                description = post["description"]
+                contentType = post["content_type"]
+                content = post["content"]
+                categories = ",".join(post["categories"])
+                pubDate = datetime.now().date()
+                permission = post["visibility"]
+                visibility = post["visibility"]
+                
+                post = Posts(title = title, source=source, origin=origin, category=categories, description=description, content_type=contentType, content=content, owner_id=userInfo, permission=permission, pub_date=pubDate, visibility = permission)
+                post.save()
+
+        return HttpResponse("<p>The posts have been created/modified successfully.</p>", content_type="text/html")
     elif request.method == 'PUT':
         try:
             userInfo = Users.objects.get(username=username)
@@ -277,17 +327,20 @@ def posts(request, username):
     elif request.method == 'DELETE':
         #only system admin and the author can do this!
         #check if the user is admin/author of post
-        userInfo = Users.objects.get(username=username)
-        postInfo = Posts.objects.get(owner_id=userInfo)
+        try:
+            userInfo = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            return HttpResponse("<p>Username specified does not existin the databasee</p>\r\n", content_type="text/html")
+
+        postInfo = Posts.objects.filter(owner_id=userInfo)
         
         #server admins and the author has the permissions to delete the post
-        if userInfo.role == "admin" or postInfo.owner_id.id == userInfo.id:
-            for post in postInfo:
-                post.delete()
-            return HttpResponse("<p>Posts have been deleted.</p>", content_type="text/html")
-        else:
-            print "no permission"
-            return HttpResponse("<p>You do not have permission to delete these posts.</p>", content_type="text/html")
+        for post in postInfo:
+            if userInfo.role == "admin" or post.owner_id.id == userInfo.id:
+                    post.delete()
+            else:
+                return HttpResponse("<p>You do not have permission to delete these posts.</p>", content_type="text/html")
+        return HttpResponse("<p>Posts have been deleted.</p>", content_type="text/html")
     else:
         return HttpResponseNotAllowed
 
