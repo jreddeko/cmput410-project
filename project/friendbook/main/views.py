@@ -203,9 +203,11 @@ def search_users(request):
     will update the post to newly given information in POST request body if 
     the specified user is the author.  If the post does not exist in the
     database, then it will create a new post with specified author as an author.
-    For PUT request, it will create the posts in the PUT request body.
+    For PUT request, it will modify the posts in the PUT request body that exists in
+    the database already. For each post that does not exist in the database, the API
+    will output an HTML string to warn the user.
     For DELETE request, it will delete all posts that the specified user has
-    authored.
+    authored. Only the author and the server admin have the permission to do this.
 '''
 @csrf_exempt
 def posts(request, username):
@@ -213,8 +215,14 @@ def posts(request, username):
     currentHost = request.get_host()
     if request.method == 'GET':
         #need to add permission stuff when friends are implemented
-        userInfo = Users.objects.get(username=username)
-        posts = Posts.objects.filter(owner_id=userInfo).order_by("-pub_date")
+        try:
+            userInfo = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            return HttpResponse("<p>Username specified does not existin the databasee</p>\r\n", content_type="text/html")
+        try:
+            posts = Posts.objects.filter(owner_id=userInfo).order_by("-pub_date")
+        except ObjectDoesNotExist:
+            return HttpResponse("<p>This user does not have any posts.</p>\r\n", content_type="text/html")
         
         jsonResult = post2Json(currentHost, userInfo, posts, "posts")
         # must have content_type parameter to not include HTTPResponse
@@ -225,7 +233,46 @@ def posts(request, username):
     elif request.method == 'POST':
         print "restful POST requested"
     elif request.method == 'PUT':
-        print "restful PUT requested"
+        try:
+            userInfo = Users.objects.get(username=username)
+        except ObjectDoesNotExist:
+            return HttpResponse("<p>Username specified does not existin the databasee</p>\r\n", content_type="text/html")
+        postList = json.loads(request.body).get("posts")
+        errorMessage = []
+        for post in postList:
+            postId = post["guid"]
+            try:
+                old_post = Posts.objects.get(id=postId)
+                title = post["title"]
+                origin = post["origin"]
+                source = post["source"]
+                description = post["description"]
+                contentType = post["content_type"]
+                content = post["content"]
+                categories = ",".join(post["categories"])
+                pubDate = datetime.now().date()
+                permission = post["visibility"]
+                visibility = post["visibility"]
+                
+                old_post.title = title
+                old_post.permission = permission
+                old_post.source = source
+                old_post.origin = origin
+                old_post.category = categories
+                old_post.description = description
+                old_post.content_type = "text/html"
+                old_post.content = content
+                old_post.owner_id = userInfo
+                old_post.pub_date = datetime.now().date()
+                old_post.visibility = permission
+                
+                old_post.save()
+            except ObjectDoesNotExist:
+                errorMessage.append("<p>The specified post with ID "+str(post["guid"])+" does not exsit to be modified.</p>\r\n")
+
+        errors = ",".join(errorMessage)
+        return HttpResponse(errors, content_type="text/html")
+
         #create post in db
     elif request.method == 'DELETE':
         #only system admin and the author can do this!

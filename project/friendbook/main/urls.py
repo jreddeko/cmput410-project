@@ -3,7 +3,12 @@ from main import views
 from django.contrib import admin
 admin.autodiscover()
 
-#postwall url is just to test display only URI
+
+'''
+The first 8 URIs are for viewing the website while the after 9th URI and on are
+for the RESTful API.  For more information on this RESTful service, please read
+the methods associated with them in views.py.
+'''
 urlpatterns = patterns('',
     url(r'^$', views.index, name='index'),
     url(r'^logout$', views.logout, name='logout'),
