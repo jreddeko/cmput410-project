@@ -45,11 +45,11 @@ $(document).ready(function (){
                   
 });
 
+/**
+ *
+ */
 function deletePost(userid, dbId)
 {
-    console.log(userid);
-    console.log(window.location.host);
-    
     var dialogBox = $("<div id='deleteMessage' class='dialog'><p>Are you sure you want to delete this post?</p></div>");
     $("#post-"+dbId).append(dialogBox);
     $("#deleteMessage").dialog({
@@ -78,7 +78,7 @@ function deletePost(userid, dbId)
            },
            "Cancel" : function() {
                 $(this).dialog("close");
-                $("#deleteMessage").empty().remove();
+                $(this).dialog("destroy");
            }
        }
        
