@@ -2,12 +2,13 @@ from django.shortcuts import render
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.shortcuts import redirect
-from django.http import HttpResponse
+from django.http import HttpResponse,StreamingHttpResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
 from django.db import IntegrityError
+from django.db.models import Q
 
 from main.models import Users, Posts, Comment , Friends
 
@@ -90,6 +91,15 @@ def getGitHubEvents(githubAccount):
     else:
         return list()
 
+'''
+This method is triggered by URI http://127.0.0.1:8000/wall/
+to display the post wall.  The GET method just gets all posts that the
+user has access to and sends it back to the postwall.html for display.
+
+The POST method can be for two purposes: for creating new post or for
+editting an existing post.  In both cases the data is taken from the POST
+body and inserted into the main_posts database table.
+'''
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
 def wall(request):
@@ -148,20 +158,31 @@ def wall(request):
     else:
         githubActivity = getGitHubEvents(userInfo.github_account)
         userInfo = Users.objects.get(username=request.session['username'])
-        posts = Posts.objects.filter(owner_id=userInfo).order_by("-pub_date")
+        authorposts = Posts.objects.filter(owner_id=userInfo)
+#        authorposts = allAuthorPosts.exclude(visibility = "public").order_by("-pub_date")
+#        publicposts = Posts.objects.filter(visibility = "public")
+#        friends = Friends.objects.filter(Q(username1=userInfo)|Q(username2=userInfo), accept=1)
+#        friendPosts = getFriendsPosts(friends)
+
         currentHost = request.get_host()
-        jsonResult = post2Json(currentHost, userInfo, posts)
+        jsonResult = post2Json(currentHost, userInfo, authorposts)
         
         queryData = json.loads(jsonResult)
         mergedList = githubActivity + queryData
         mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
         return render_to_response('main/postwall.html', {"user_id": userInfo.id, "username": request.session['username'], "posts":mergedList})
 
+# for above method to grab all posts from friends. (Need to watch out for having duplicate posts!
+#def getFriendsPosts(friendObj):
+#   friendposts = {}
+#   for result in friendObj:
+#       allPosts = Posts.objects.filter(owner_id=result)
+#posts = allPosts.exclude(visibility = "public").order_by("-pub_date")
+#friendposts[] = posts
+
 def newpost(request):
     context = RequestContext(request)
     return render_to_response('main/create_post.html', context)
-
-
 
 def search_users(request):
     context = RequestContext(request)
@@ -170,19 +191,10 @@ def search_users(request):
     me = request.session["username"]
     return render_to_response('main/search_user.html',{'users': users, 'me': me, 'friends': friends }, context)
 
-@csrf_exempt
-def posts(request, username):
-  context = RequestContext(request)
-  print request.method
-  #return render_to_response('main/postwall.html', context)
-  if request.method == 'GET':
-    print "restful get requested"
-
-
 '''
     RESTful API for One author's posts
     
-    This function is called when /author/<user_id>/posts is called with GET, POST,
+    This function is called when /author/<username>/posts is called with GET, POST,
     PUT or DELETE HTTP requests and it shows information about author's
     posts.
     
@@ -196,20 +208,20 @@ def posts(request, username):
     authored.
 '''
 @csrf_exempt
-def posts(request, user_id):#todo get rid of username (currently it throws an error)
+def posts(request, username):
     context = RequestContext(request)
-    print request.method
+    currentHost = request.get_host()
     if request.method == 'GET':
-        print "restful get requested"
-        getGitHubEvents(request.session["username"])
+        #getGitHubEvents(request.session["username"])
         #need to add permission stuff when friends are implemented
-        userInfo = Users.objects.get(username=user_id)
+        userInfo = Users.objects.get(username=username)
         posts = Posts.objects.filter(owner_id=userInfo).order_by("-pub_date")
-        currentHost = request.get_host()
+        
         jsonResult = post2Json(currentHost, userInfo, posts)
         # must have content_type parameter to not include HTTPResponse
         # values included in the JSON result to be passed to the AJAX call
-        return HttpResponse(jsonResult, content_type="application/json")
+        #return jsonResult
+        return HttpResponse(json.loads(jsonResult), content_type="application/json")
     
     elif request.method == 'POST':
         print "restful POST requested"
@@ -218,9 +230,33 @@ def posts(request, user_id):#todo get rid of username (currently it throws an er
         #create post in db
     elif request.method == 'DELETE':
         #only system admin and the author can do this!
-        print "restful DELETE requested"
+        #check if the user is admin/author of post
+        userInfo = Users.objects.get(username=username)
+        postInfo = Posts.objects.get(owner_id=userInfo)
+        
+        #server admins and the author has the permissions to delete the post
+        if userInfo.role == "admin" or postInfo.owner_id.id == userInfo.id:
+            for post in postInfo:
+                post.delete()
+            return HttpResponse("<p>Posts have been deleted.</p>", content_type="text/html")
+        else:
+            print "no permission"
+            return HttpResponse("<p>You do not have permission to delete these posts.</p>", content_type="text/html")
     else:
         return HttpResponseNotAllowed
+
+'''
+This method is called by posts to format the JSON as to appropriate format to be inserted into the database.
+The jsonObject param is the JSON object that is shown in example_article.json in project webisite:
+https://github.com/abramhindle/CMPUT404-project-socialdistribution/blob/master/example-article.json
+
+It takes the JSON object and create and create a properly formatted JSON object.
+
+@param querySet         django QuerySet object that is returned from database query to
+posts table
+@return JSON object to be sent as a response to an AJAX call
+'''
+#def json2Post(host, userData, jsonObject):
 
 '''
 This method is called by posts to format the query result as desired JSON format
@@ -311,7 +347,7 @@ def current_site_url():
     RESTful API for getting information on one post specified in post_id
     of the URI
     
-    This function is called when /author/<user_id>/posts/<post_id> is called with GET, POST,
+    This function is called when /author/<username>/posts/<post_id> is called with GET, POST,
     PUT or DELETE HTTP requests and it shows information about the specified post.
     
     For GET requests, it returns relevant information about the specified post.(the
@@ -325,7 +361,7 @@ def current_site_url():
     the post.
     
     @param request      information on HTTP Request
-    @param user_id      (currently DB ID but should be SHA1 ID) of user in URI
+    @param username      (currently DB ID but should be SHA1 ID) of user in URI
     @param post_id      (currently DB ID but should be SHA1 ID) of post in URI
     
     @return             For GET, JSON representation of specified post information
@@ -334,10 +370,10 @@ def current_site_url():
                         For Delete, message indicating deletion of post
 '''
 @csrf_exempt
-def post(request, user_id, post_id):
+def post(request, username, post_id):
     if request.method == 'GET':
         #need to add permission stuff when friends are implemented
-        userInfo = Users.objects.get(id=user_id)
+        userInfo = Users.objects.get(username=username)
         #used filter instead of get to use post2Json method
         post = Posts.objects.filter(id=post_id)
         currentHost = request.get_host()
@@ -350,11 +386,11 @@ def post(request, user_id, post_id):
         # is passed to identify the intended HTTP method
         if request.POST["method"] == "delete":
             #check if the user is admin/author of post
-            userInfo = Users.objects.get(id=user_id)
+            userInfo = Users.objects.get(username=username)
             postInfo = Posts.objects.get(id=post_id)
             
             #server admins and the author has the permissions to delete the post
-            if userInfo.role == "Server Admin" or postInfo.owner_id.id == userInfo.id:
+            if userInfo.role == "admin" or postInfo.owner_id.id == userInfo.id:
                 postInfo.delete()
                 print "author has permission"
                 return HttpResponse("<p>Post has been deleted.</p>", content_type="text/html")
@@ -367,11 +403,11 @@ def post(request, user_id, post_id):
         print "PUT Request!"
     elif request.method == 'DELETE':
         #check if the user is admin/author of post
-        userInfo = Users.objects.get(id=user_id)
+        userInfo = Users.objects.get(username=username)
         postInfo = Posts.objects.get(id=post_id)
         
         #server admins and the author has the permissions to delete the post
-        if userInfo.role == "Server Admin" or postInfo.owner_id.id == userInfo.id:
+        if userInfo.role == "admin" or postInfo.owner_id.id == userInfo.id:
             postInfo.delete()
             return HttpResponse("<p>Post has been deleted.</p>", content_type="text/html")
         #user specified is not author/server admin, so give them a warning
