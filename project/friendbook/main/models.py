@@ -28,8 +28,8 @@ class Comment(models.Model):
 	pub_date = models.DateTimeField(auto_now_add=True, blank=True)
 
 class Friends(models.Model):
-	username1 = models.ForeignKey(Users, related_name= "friends_username1")
-	username2 = models.ForeignKey(Users, related_name= "friends_username2")
+	username1 = models.ForeignKey(Users, related_name= "friends_username1",to_field="username")
+	username2 = models.ForeignKey(Users, related_name= "friends_username2",to_field="username")
 	accept = models.BooleanField()
 
 
