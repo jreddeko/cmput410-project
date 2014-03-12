@@ -42,40 +42,47 @@
                 
             </div>
         </div>
-        <div class="container">
-            <div class="notif">
+       <div class="container">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="well">
                 <h4>New Requests:</h4>
-                <h6>Coming Soon...</h6>
-                <form  action="{% url 'friendship' %}" method="get">
-                    {% csrf_token %}
             {% for friend in friends %}
-                {% if friend.username2 = me  %}
-                {{ user.username1 }}:
-            
-                <input type="submit" value="Accept Request">
-             {% endif %}
+                    {% if friend.username2.username == me and friend.accept == 0 %}
+                    <form  action="{% url 'friendship_accept' %}" method="post">
+                        {% csrf_token %}
+                        <h3>{{ friend.username1.username }}</h3>
+                        <input type="hidden" name="friendrequest" value="{{ friend.username1.username }}">
+                        <input type="submit" value="Accept Request">
+                    {% endif %}
+                    </form>
             {% endfor %} 
-            </form>
             </div>
         </div>
+    </div>
+</div>
         <div class="container">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="well">
             <h4>All Users:</h4>
-            
             {% for user in users %}
-                
                 {% if user.username != me %}
-                {{ user.username }}:
-                <form  action="{% url 'friendship' %}" method="post">
+                    <h3>{{ user.username }}</h3>
+                    <form  action="{% url 'friendship' %}" method="post">
                     {% csrf_token %}
-	            {% if user.username not in check %}
-                    <input type="hidden" name="friendname" value="{{ user.username }}">
-                    <input type="submit" value="Add As Friend">
+	               {% if user.username not in check %}
+                        <input type="submit" value="Add As Friend">
+                        <input type="hidden" name="friendname" value="{{ user.username }}">
 		    {% endif %}
                 </form>
              {% endif %}
             {% endfor %} 
             
-        </div><!-- /.container -->
+         </div>
+        </div>
+    </div>
+</div>
         
         <div class="blog-footer">
             <a href="#">Back to top</a>
