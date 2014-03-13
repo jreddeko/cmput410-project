@@ -249,7 +249,7 @@ def posts(request, username):
         try:
             userInfo = Users.objects.get(username=username)
         except ObjectDoesNotExist:
-            return HttpResponse("<p>Username specified does not existin the databasee</p>\r\n", content_type="text/html")
+            return HttpResponse("<p>Username specified does not existin the database</p>\r\n", content_type="text/html")
         try:
             posts = Posts.objects.filter(owner_id=userInfo).order_by("-pub_date")
         except ObjectDoesNotExist:
