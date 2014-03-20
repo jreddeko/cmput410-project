@@ -53,7 +53,8 @@
                         {% csrf_token %}
                         <h3>{{ friend.username1.username }}</h3>
                         <input type="hidden" name="friendrequest" value="{{ friend.username1.username }}">
-                        <input type="submit" value="Accept Request">
+                        <input type="submit" value="Accept Request" name="request">
+                        <input type="submit" value="Decline Request" name="request">
                     {% endif %}
                     </form>
             {% endfor %} 
@@ -68,10 +69,10 @@
             <h4>All Users:</h4>
             {% for user in users %}
                 {% if user.username != me %}
-                    <h3>{{ user.username }}</h3>
                     <form  action="{% url 'friendship' %}" method="post">
                     {% csrf_token %}
 	               {% if user.username not in check %}
+                        <h3>{{ user.username }}</h3>
                         <input type="submit" value="Add As Friend">
                         <input type="hidden" name="friendname" value="{{ user.username }}">
 		    {% endif %}
@@ -79,6 +80,18 @@
              {% endif %}
             {% endfor %} 
             
+            {% for user in users %}
+                {% if user.username != me %}
+                    <form  action="{% url 'unfriend' %}" method="post">
+                    {% csrf_token %}
+                   {% if user.username in check %}
+                        <h3>{{ user.username }}</h3>
+                        <input type="submit" value="Delete Friend">
+                        <input type="hidden" name="friendname" value="{{ user.username }}">
+            {% endif %}
+                </form>
+             {% endif %}
+            {% endfor %} 
          </div>
         </div>
     </div>
