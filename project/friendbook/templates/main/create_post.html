@@ -1,141 +1,132 @@
 {% load static  %}
 <html lang="en">
-    <head>
-        <meta charset="utf-8"/>
-        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-        <title>Blog style?</title>
-        <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet"/>
-        <link href="{% static 'css/blog.css'%}" rel="stylesheet"/>
-        <script type="text/javascript" src="{% static 'js/jquery/jquery-1.8.3.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/tinymce/tinymce.min.js' %}"></script>
-        <script type="text/javascript">
-            $(document).ready(function() {
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>Blog style?</title>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet"/>
+    <link href="{% static 'css/blog.css'%}" rel="stylesheet"/>
+    <script type="text/javascript" src="{% static 'js/jquery/jquery-1.8.3.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/tinymce/tinymce.min.js' %}"></script>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        $("#spec_author_div").hide();
+        $("#post_permissions").change(function() {
+            var currentVal = $(this).val();
+            if(currentVal == "spec_autor")
+            {
+                $("#spec_author_div").show();
+            }
+            else
+            {
                 $("#spec_author_div").hide();
-                $("#post_permissions").change(function() {
-                    var currentVal = $(this).val();
-                    if(currentVal == "spec_autor")
-                    {
-                        $("#spec_author_div").show();
-                    }
-                    else
-                    {
-                        $("#spec_author_div").hide();
-                    }
-                });
-              tinymce.init({
-                   selector: "textarea",
-                   width: '90%',
-                   plugins: [
-                             "advlist autolink lists link image charmap preview anchor",
-                             "searchreplace visualblocks code fullscreen",
-                             "insertdatetime media table contextmenu paste"
-                             ],
-                   toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
-               });
-            });
-        </script>
-    </head>
-    <body>
-        <div class="navbar-wrapper">
-            <div class="container">
-                <div class="navbar navbar-inverse navbar-static-top" role="navigation">
-                    <div class="container">
-                        <div class="navbar-header">
-                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                                <span class="sr-only">Toggle navigation</span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
-                            </button>
-                            <a class="navbar-brand" href="#">Project name</a>
-                        </div>
-                        <div class="navbar-collapse collapse">
-                            <ul class="nav navbar-nav">
-                                <li><a href="{% url 'wall' %}">Post Wall</a></li>
-                                <li class="active"><a href="#">Create Post</a></li>
-                                <li><a href="#contact">Contact</a></li>
-                                <li><a href="{% url 'search_users' %}">Search Users</a></li>
-                            </ul>
-                        </div>
+            }
+        });
+        tinymce.init({
+         selector: "textarea",
+         width: '90%',
+         plugins: [
+         "advlist autolink lists link image charmap preview anchor",
+         "searchreplace visualblocks code fullscreen",
+         "insertdatetime media table contextmenu paste"
+         ],
+         toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
+     });
+    });
+    </script>
+</head>
+
+
+<body>
+    <div class="navbar-wrapper">
+        <div class="container">
+            <div class="navbar navbar-inverse navbar-static-top" role="navigation">
+                <div class="container">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="#">Project name</a>
+                    </div>
+                    <div class="navbar-collapse collapse">
+                        <ul class="nav navbar-nav">
+                            <li><a href="{% url 'wall' %}">Post Wall</a></li>
+                            <li class="active"><a href="#">Create Post</a></li>
+                            <li><a href="#contact">Contact</a></li>
+                            <li><a href="{% url 'search_users' %}">Search Users</a></li>
+                        </ul>
                     </div>
                 </div>
-                
             </div>
+            
         </div>
-        
-        <div class="container">
-            <div class="row">
-                <div class="col-sm-12">
-                    <div class="well">
-                        <h3>Create Post</h3>
-                        <form id="new_post" class="form-horizontal" action="{% url 'wall' %}" method="POST">
-                            <div class="form-group">
-                                <label for="post_permissions" class="col-sm-3">Permissions:</label>
-                                <div class="col-sm-9">
-                                    <!-- chang evalue of these options to match ones given in JSON example -->
-                                    <select id="post_permissions" name="post_permissions" class="col-sm-9 form-control" style="width: 90%;">
-                                        <option value="private" selected="selected">Private</option>
-                                        <option value="spec_autor">Specify</option>
-                                        <option value="friends">Friends</option>
-                                        <option value="foaf">Friends of my friends</option>
-                                        <option value="serveronly">Friends within my host</option>
-                                        <option value="public">Public</option>
-                                    </select>
-                                </div>
+    </div>
+
+
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="well">
+                    <h3>Create Post</h3>
+                    <form id="new_post" class="form-horizontal" action="{% url 'wall' %}" method="POST">
+                        <div class="form-group">
+                            <label for="id_permission" class="col-sm-3">Permissions:</label>
+                            <div class="col-sm-9">
+                                {{ form.permission }}
                             </div>
-                            <div id="spec_author_div" class="form-group">
-                                <label for="spec_author_input" class="col-sm-3"> Author's username:</label>
-                                <div class="col-sm-9">
-                                    <input id="spec_author_input" name="spec_author_input" style="width: 90%;" placeholder="Please input the author's username."/>
-                                </div>
+                        </div>
+                        <div id="spec_author_div" class="form-group">
+                            <label for="spec_author_input" class="col-sm-3"> Author's username:</label>
+                            <div class="col-sm-9">
+                                <input id="spec_author_input" name="spec_author_input" style="width: 90%;" placeholder="Please input the author's username."/>
                             </div>
-                            <div class="form-group">
-                                <label for="post_title" class="col-sm-3">Title: </label>
-                                <div class="col-sm-9">
-                                    <input type="text" id="post_title" name="post_title" style="width: 90%;" placeholder="Title of the post"/>
-                                </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="post_title" class="col-sm-3">Title: </label>
+                            <div class="col-sm-9">
+                                {{form.title}}
                             </div>
-                            <div class="form-group">
-                                <label for="post_source" class="col-sm-3">Source of the Post: </label>
-                                <div class="col-sm-9">
-                                    <input type="text" id="post_source" name="post_source" style="width: 90%;" placeholder="Source URI of the post"/>
-                                </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="id_category" class="col-sm-3">Category of the Post: </label>
+                            <div class="col-sm-9">
+                                <input type="text" id="post_category" name="post_category" style="width: 90%;" placeholder="(e.g. Medical, Health)"/>
                             </div>
-                            <div class="form-group">
-                                <label for="post_origin" class="col-sm-3">Origin of the Post: </label>
-                                <div class="col-sm-9">
-                                    <input type="text" id="post_origin" name="post_origin" style="width: 90%;" placeholder="Origin of the post (URI)"/>
-                                </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_content_type" class="col-sm-3">Content Type: </label>
+                            <div class="col-sm-9">
+                                {{form.content_type}}
                             </div>
-                            <div class="form-group">
-                                <label for="post_category" class="col-sm-3">Category of the Post: </label>
-                                <div class="col-sm-9">
-                                    <input type="text" id="post_category" name="post_category" style="width: 90%;" placeholder="(e.g. Medical, Health)"/>
-                                </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="id_description" class="col-sm-3">Post Description:</label>
+                            <div class="col-sm-9">
+                                {{form.description}}
                             </div>
-                            <div class="form-group">
-                                <label for="post_description" class="col-sm-3">Post Description:</label>
-                                <div class="col-sm-9">
-                                    <input id="post_description" name="post_description" style="width: 90%;" placeholder="Description of the post"/>
-                                </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="id_content" class="col-sm-3">Post Content:</label>
+                            <div class="col-sm-9">
+                                {{form.content}}
                             </div>
-                            <div class="form-group">
-                                <label for="post_content" class="col-sm-3">Post Content:</label>
-                                <div class="col-sm-9">
-                                    <textarea id="post_content" name="post_content" style="width: 90%;"></textarea>
-                                </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3"></label>
+                            <div class="col-sm-9">
+                                <button class="btn btn-primary btn-md" type="submit" style="width: 10%;">Post</button>
                             </div>
-                            <div class="form-group">
-                                <label class="col-sm-3"></label>
-                                <div class="col-sm-9">
-                                    <button class="btn btn-primary btn-md" type="submit" style="width: 10%;">Post</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div><!-- /.well -->
-                    </hr>
-                </div><!-- /.row -->
-            </div>
-        </div><!-- /.container -->
-    </body>
+                        </div>
+                    </form>
+                </div><!-- /.well -->
+            </hr>
+        </div><!-- /.row -->
+    </div>
+</div><!-- /.container -->
+
+</body>
 </html>

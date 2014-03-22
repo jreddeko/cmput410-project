@@ -1,175 +1,162 @@
 {% load static  %}
 <html lang="en">
-    <head>
-        <meta charset="utf-8"/>
-        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-        <title>Blog style?</title>
-        <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet"/>
-        <link href="{% static 'css/blog.css'%}" rel="stylesheet"/>
-        <link href="{% static 'css/jquery-themes/base/jquery.ui.all.css'%}" rel="stylesheet"/>
-        <script type="text/javascript" src="{% static 'js/jquery/jquery-1.8.3.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/tinymce/tinymce.min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/postwall.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/jquery/ui/jquery.ui.core.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/jquery/ui/jquery.ui.position.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/jquery/ui/jquery.ui.widget.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/jquery/ui/jquery.ui.dialog.js' %}"></script>
-        <script type="text/javascript">
-            var username = "{{ username }}";
-            </script>
-    </head>
-    <body>
-        <div class="navbar-wrapper">
-            <div class="container">
-                <div class="navbar navbar-inverse navbar-static-top" role="navigation">
-                    <div class="container">
-                        <div class="navbar-header">
-                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                                <span class="sr-only">Toggle navigation</span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
-                            </button>
-                            <a class="navbar-brand" href="#">Project name</a>
-                        </div>
-                        <div class="navbar-collapse collapse">
-                            <ul class="nav navbar-nav">
-                                <li class="active"><a href="#">Post Wall</a></li>
-                                <li><a href="{% url 'newpost' %}">Create Post</a></li>
-                                <li><a href="#contact">Contact</a></li>
-                                <li><a href="{% url 'search_users' %}">Search Users</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>Blog style?</title>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet"/>
+    <link href="{% static 'css/blog.css'%}" rel="stylesheet"/>
+    <link href="{% static 'css/jquery-themes/base/jquery.ui.all.css'%}" rel="stylesheet"/>
+    <script type="text/javascript" src="{% static 'js/jquery/jquery-1.8.3.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/tinymce/tinymce.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/postwall.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery/ui/jquery.ui.core.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery/ui/jquery.ui.position.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery/ui/jquery.ui.widget.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery/ui/jquery.ui.dialog.js' %}"></script>
+    <script type="text/javascript">
+    var username = "{{ username }}";
+    </script>
+</head>
+<body>
+    <div class="navbar-wrapper">
         <div class="container">
-            <div class="blog-header">
-                <!-- update Username to actual username when sessions are set. -->
-                <h1 class="blog-title">{{ username }}</h1>
-                <p class="lead blog-description">Welcome to social media!</p>
-            </div>
-            
-            <div class="row">
-                <div class="col-sm-3 col-sm-offset-1 blog-sidebar list_friends">
-                    <div class="sidebar-module sidebar-module-inset">
-                        <h4>Friends</h4>
-                        <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;"/>
-                        <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;"/>
-                        <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;"/>
+            <div class="navbar navbar-inverse navbar-static-top" role="navigation">
+                <div class="container">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="#">Project name</a>
                     </div>
-                </div><!-- /.blog-sidebar -->
-                {% for post in posts %}
-                <!--If it is a github event-->
-                {% if post.type %}
-                <div class="col-sm-8 blog-main">
-                    <div id="post-{{ post.guid }}"class="blog-post">
-                        <h2 class="blog-post-title">Github - {{ post.type}}</h2>
-                        
-                        <div id="post_content-{{ post.guid }}" class="blog_content">
-                            <p>Repo: {{post.repo.name}}</p>
-                        </div>
-                        <div id="post_author_info-{{ post.guid }}">
-                            <p class="blog-post-meta">Posted on {{post.pubDate}}</p>
-                        </div>
+                    <div class="navbar-collapse collapse">
+                        <ul class="nav navbar-nav">
+                            <li class="active"><a href="#">Post Wall</a></li>
+                            <li><a href="{% url 'newpost' %}">Create Post</a></li>
+                            <li><a href="#contact">Contact</a></li>
+                            <li><a href="{% url 'search_users' %}">Search Users</a></li>
+                        </ul>
                     </div>
                 </div>
-                <!--If it is not a github event, it is a post-->
-                {% else %}
-                <div id="post_wall" class="col-sm-8 blog-main">
-                    <div id="post-{{ post.guid }}"class="blog-post">
-                        <button id="post_delete-{{ post.guid }}" type="button" class="btn btn-primary btn-lg post_buttons">
-                            <span class="glyphicon glyphicon-trash"></span> Delete
-                        </button>
-                        <button id="post_edit-{{ post.guid }}" type="button" class="btn btn-primary btn-lg post_buttons">
-                            <span class="glyphicon glyphicon-pencil"></span> Edit
-                        </button>
-                        <h2 class="blog-post-title">{{ post.title }}</h2>
-                        {% if post.categories %}
-                        <div id="post_category-{{ post.guid }}">
-                            <p class="blog-post-meta">Categories: <span>
-                                {% for cat in post.categories %}
-                                {% if not forloop.last %}
-                                {{ cat }},
-                                {% else %}
-                                {{ cat }}
-                                {% endif %}
-                                {% endfor %}
-                            </span>
-                            </p>
-                        </div>
-                        {% endif %}
-                        {% if post.source %}
-                        <div id="post_source-{{ post.guid }}">
-                            <p class="blog-post-meta" style="margin-bottom:2px;">Source: <span>{{ post.source }}<span></p>
-                                </div>
-                        {% endif %}
-                        {% if post.origin %}
-                        <div id="post_origin-{{ post.guid }}">
-                            <p class="blog-post-meta">Origin: <span>{{ post.origin }}<span></p>
-                                </div>
-                        {% endif %}
-                        {% if post.description %}
-                        <div id="post_description-{{ post.guid }}">
-                            <p class="blog-post-meta">Description of the Post: <span>{{ post.description }}</span></p>
-                        </div>
-                        {% endif %}
-                        <div id="post_content-{{ post.guid }}" class="blog_content">
-                            {{ post.content | safe }}
-                        </div>
-                        <div id="post_author_info-{{ post.guid }}">
-                            <p class="blog-post-meta">Posted on {{post.pubDate}} by <a href="#">{{ post.author.displayname }}</a></p>
-                        </div>
-                        <!-- hidden div where it will be storing the permissions value from the DB. Needed when editting the post to load previous contents asynchronously -->
-                        <input id="post_permission-{{ post.guid }}" type="hidden" value="{{ post.visibility }}"/>
-                        {% if post.comments %}
-                        <div id="post_comment-{{ post.guid }}" class="well">
-                            <h4> Comments </h4>
-                            <hr/>
-                            {% for comment in post.comments %}
-                            <div id="post_comment-{{ comment.guid }}" class="post_comments">
-                                <p> {{ comment.comment }} </p>
-                                <p class="blog-post-meta">Commented by: {{ comment.author.displayname }}</p>
-                            </div>
-                            {% endfor %}
-                            <hr/>
-                            <div id="post_new_comment">
-                                <form id="new_comment-{{ post.guid }}" class="form-horizontal" action="#" method="post">
-                                    <div class="form-group">
-                                        <label for="comment_content-{{ post.guid }}" class="col-sm-3">Your comment:</label>
-                                        <div class="col-sm-9">
-                                            <textarea id="comment_content-{{ post.guid }}" class="mceNoEditor" name="comment_content-{{ post.guid }}" style="width: 90%;"></textarea>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div><!-- end of comments -->
-                        {% else %}
-                        <div id="post_comment-{{ post.guid }}" class="well">
-                            <h4> Comments </h4>
-                            <hr/>
-                            <div id="post_new_comment">
-                                <form id="new_comment-{{ post.guid }}" class="form-horizontal" action="#" method="post">
-                                    <div class="form-group">
-                                        <label for="comment_content-{{ post.guid }}" class="col-sm-3">Your comment:</label>
-                                        <div class="col-sm-9">
-                                            <textarea id="comment_content-{{ post.guid }}" name="post_content-{{ post.guid }}" style="width: 90%;"></textarea>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div><!-- end of comments -->
-                        {% endif %}
-                    </div><!-- end of post -->
-                    
-                </div><!-- /.blog-main -->
-                {% endif %}
-                {% endfor %}
-            </div><!-- /.row -->
-        </div><!-- /.container -->
-        <div class="blog-footer">
-            <a href="#">Back to top</a>
+            </div>
         </div>
-    </body>
+    </div>
+    <div class="container">
+        <div class="blog-header">
+            <!-- update Username to actual username when sessions are set. -->
+            <h1 class="blog-title">{{ username }}</h1>
+            <p class="lead blog-description">Welcome to social media!</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-sm-3 col-sm-offset-1 blog-sidebar list_friends">
+                <div class="sidebar-module sidebar-module-inset">
+                    <h4>Friends</h4>
+                    <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;"/>
+                    <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;"/>
+                    <img data-src="holder.js/140x140" class="img-rounded" alt="140x140" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTQwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI2VlZSI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwIiB5PSI3MCIgc3R5bGU9ImZpbGw6I2FhYTtmb250LXdlaWdodDpib2xkO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtZmFtaWx5OkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPjE0MHgxNDA8L3RleHQ+PC9zdmc+" style="width: 140px; height: 140px;"/>
+                </div>
+            </div><!-- /.blog-sidebar -->
+            {% for post in posts %}
+            <!--If it is a github event-->
+            {% if post.type %}
+            <div class="col-sm-8 blog-main">
+                <div id="post-{{ post.guid }}"class="blog-post">
+                    <h2 class="blog-post-title">Github - {{ post.type}}</h2>
+                    
+                    <div id="post_content-{{ post.guid }}" class="blog_content">
+                        <p>Repo: {{post.repo.name}}</p>
+                    </div>
+                    <div id="post_author_info-{{ post.guid }}">
+                        <p class="blog-post-meta">Posted on {{post.pubDate}}</p>
+                    </div>
+                </div>
+            </div>
+            <!--If it is not a github event, it is a post-->
+            {% else %}
+            <div id="post_wall" class="col-sm-8 blog-main">
+                <div id="post-{{ post.guid }}"class="blog-post">
+                    <button id="post_delete-{{ post.guid }}" type="button" class="btn btn-primary btn-lg post_buttons">
+                        <span class="glyphicon glyphicon-trash"></span> Delete
+                    </button>
+                    <button id="post_edit-{{ post.guid }}" type="button" class="btn btn-primary btn-lg post_buttons">
+                        <span class="glyphicon glyphicon-pencil"></span> Edit
+                    </button>
+                    <h2 class="blog-post-title">{{ post.title }}</h2>
+                    {% if post.categories %}
+                    <div id="post_category-{{ post.guid }}">
+                        <p class="blog-post-meta">Categories: <span>
+                            {% for cat in post.categories %}
+                            {% if not forloop.last %}
+                            {{ cat }},
+                            {% else %}
+                            {{ cat }}
+                            {% endif %}
+                            {% endfor %}
+                        </span>
+                    </p>
+                </div>
+                {% endif %}
+                {% if post.source %}
+                <div id="post_source-{{ post.guid }}">
+                    <p class="blog-post-meta" style="margin-bottom:2px;">Source: <span>{{ post.source }}<span></p>
+                </div>
+                {% endif %}
+                {% if post.origin %}
+                <div id="post_origin-{{ post.guid }}">
+                    <p class="blog-post-meta">Origin: <span>{{ post.origin }}<span></p>
+                </div>
+                {% endif %}
+                {% if post.description %}
+                <div id="post_description-{{ post.guid }}">
+                    <p class="blog-post-meta">Description of the Post: <span>{{ post.description }}</span></p>
+                </div>
+                {% endif %}
+                <div id="post_content-{{ post.guid }}" class="blog_content">
+                    {{ post.content | safe }}
+                </div>
+                <div id="post_author_info-{{ post.guid }}">
+                    <p class="blog-post-meta">Posted on {{post.pubdate}} by <a href="#">{{ post.author.username }}</a></p>
+                </div>
+                <!-- hidden div where it will be storing the permissions value from the DB. Needed when editting the post to load previous contents asynchronously -->
+                <input id="post_permission-{{ post.guid }}" type="hidden" value="{{ post.visibility }}"/>
+                <div id="post_comment-{{ post.guid }}" class="well">
+                    <h4> Comments </h4>
+
+                    {% for comment in comments %}
+                    {%  if comment.postguid.guid == post.guid %}
+                    
+                    <div id="post_comment-{{ comment.guid }}" class="post_comments">
+                        <p> {{ comment.comment }} </p>
+                        <p class="blog-post-meta">Commented by: {{ comment.author.username }}</p>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div id="post_comment-{{ post.guid }}" class="well">
+                    <div class="form-group">
+                        <form class="form-horizontal" action="/author/{{username}}/posts/{{post.guid}}/comments/" method="post">{% csrf_token %}
+                            <label for="id_comment" class="col-sm-3">Your comment:</label>
+                            {{ comment_form.comment }}
+                            <input type="submit" name="comment_submit_form" value="Submit" />
+                            
+                        </form>
+                    </div>
+                </div><!-- end of comments -->
+                
+            </div><!-- end of post -->
+            
+        </div><!-- /.blog-main -->
+        {% endif %}
+        {% endfor %}
+    </div><!-- /.row -->
+</div><!-- /.container -->
+<div class="blog-footer">
+    <a href="#">Back to top</a>
+</div>
+</body>
 </html>

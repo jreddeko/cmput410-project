@@ -11,8 +11,7 @@ from django.db import IntegrityError
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
-
-from main.models import Users, Posts, Comment , Friends
+from main.models import Users, Posts, Comment , Friends, PostsForm, CommentForm
 
 import json
 import time
@@ -58,6 +57,7 @@ def index(request):
                 return render_to_response('main/index.html', {"signupError": "Error: username already exists"}, context)
             
             return render_to_response('main/index.html', {"signupSuccess": "Successfully created an account! Before you can login, the website admin has to verify who you are"}, context)
+
 
 
 @require_http_methods(["GET"])
@@ -107,83 +107,40 @@ body and inserted into the main_posts database table.
 def wall(request):
     context = RequestContext(request)
     userInfo = Users.objects.get(username=request.session["username"])
-    
     if request.method == "POST":
-        for key, value in request.POST.iteritems():
-            dbIdInfo = key.split("-");
-            break;
-        
-        #creating post POST method
-        if len(dbIdInfo) == 1:
-            title = request.POST["post_title"]
-            permission = request.POST["post_permissions"]
-            source = request.POST["post_source"]
-            origin = request.POST["post_origin"]
-            category = request.POST["post_category"]
-            description = request.POST["post_description"]
-            content_type = "text/html"
-            content = request.POST["post_content"]
-            pub_date = datetime.now().date()
-        
-            post = Posts(title = title, source=source, origin=origin, category=category, description=description, content_type=content_type, content=content, owner_id=userInfo, permission=permission, pub_date=pub_date, visibility = permission)
-            post.save()
-        #editting post POST method
-        else:
-            title = request.POST["post_title-"+dbIdInfo[1]]
-            permission = request.POST["post_permissions-"+dbIdInfo[1]]
-            source = request.POST["post_source-"+dbIdInfo[1]]
-            origin = request.POST["post_origin-"+dbIdInfo[1]]
-            category = request.POST["post_category-"+dbIdInfo[1]]
-            description = request.POST["post_description-"+dbIdInfo[1]]
-            content_type = "text/html"
-            content = request.POST["post_content-"+dbIdInfo[1]]
-            pub_date = datetime.now().date()
-
-            old_post = Posts.objects.get(id=int(dbIdInfo[1]))
-        
-            old_post.title = title
-            old_post.permission = permission
-            old_post.source = source
-            old_post.origin = origin
-            old_post.category = category
-            old_post.description = description
-            old_post.content_type = "text/html"
-            old_post.content = content
-            old_post.owner_id = userInfo
-            old_post.pub_date = datetime.now().date()
-            old_post.visibility = permission
-        
-            old_post.save()
-
+        f = PostsForm(request.POST)
+        if f.is_valid():
+            new_post = f.save(commit=False)
+            new_post.author = userInfo
+            new_post.save()
         return redirect("wall")
     #GET request
     else:
         githubActivity = getGitHubEvents(userInfo.github_account)
-        userInfo = Users.objects.get(username=request.session['username'])
-        authorposts = Posts.objects.filter(owner_id=userInfo)
-#        authorposts = allAuthorPosts.exclude(visibility = "public").order_by("-pub_date")
-#        publicposts = Posts.objects.filter(visibility = "public")
-#        friends = Friends.objects.filter(Q(username1=userInfo)|Q(username2=userInfo), accept=1)
-#        friendPosts = getFriendsPosts(friends)
-
+        authorposts = Posts.objects.filter(author=userInfo)
         currentHost = request.get_host()
-        queryData = post2Json(currentHost, userInfo, authorposts, '').get("posts")
-        
-        mergedList = githubActivity + queryData
-        mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
-        return render_to_response('main/postwall.html', {"user_id": userInfo.id, "username": request.session['username'], "posts":mergedList})
+        #queryData = post2Json(currentHost, userInfo, authorposts, '').get("posts")
+        #mergedList = githubActivity + queryData
+        #mergedList.sort(key = lambda item:item["pubDate"], reverse = True)asdfsadfsfd
+        posts = Posts.objects.filter(author=userInfo)
+        comments = Comment.objects.filter(postguid__in=posts.values_list("guid"))
+        #return HttpResponse(str(comments[0].postguid.guid))
+        return render_to_response('main/postwall.html', 
+            {"user_id": userInfo.id, "username": request.session['username'], "posts": posts, 'comments':comments, 'comment_form':CommentForm()}, context)
 
 # for above method to grab all posts from friends. (Need to watch out for having duplicate posts!
 #def getFriendsPosts(friendObj):
 #   friendposts = {}
 #   for result in friendObj:
-#       allPosts = Posts.objects.filter(owner_id=result)
+#       allPosts = Posts.objects.filter(author=result)
 #posts = allPosts.exclude(visibility = "public").order_by("-pub_date")
 #friendposts[] = posts
 
 def newpost(request):
     context = RequestContext(request)
-    return render_to_response('main/create_post.html', context)
+    userInfo = Users.objects.get(username=request.session["username"])
+    f = PostsForm()
+    return render_to_response('main/create_post.html', {'form':f},context)
 
 '''Displays all users within the system and as users as friends'''
 def search_users(request):
@@ -246,7 +203,7 @@ def friendship_accept(request):
 '''
     RESTful API for One author's posts
     
-    This function is called when /author/<username>/posts is called with GET, POST,
+    This function is called when /author<username>/posts is called with GET, POST,
     PUT or DELETE HTTP requests and it shows information about author's
     posts.
     
@@ -261,6 +218,17 @@ def friendship_accept(request):
     For DELETE request, it will delete all posts that the specified user has
     authored. Only the author and the server admin have the permission to do this.
 '''
+def comments(request,username,post_id):
+    if request.method == "POST":
+        if 'comment_submit_form' in request.POST:
+            form = CommentForm(request.POST)
+            if form.is_valid():
+                user = Users.objects.get(username=username)
+                post = Posts.objects.get(guid=post_id)
+                comment = Comment.objects.create(postguid = post, author = user, comment = form['comment'].value())
+                return redirect("wall")
+
+    return None
 @csrf_exempt
 def posts(request, username):
     context = RequestContext(request)
@@ -272,7 +240,7 @@ def posts(request, username):
         except ObjectDoesNotExist:
             return HttpResponse("<p>Username specified does not existin the database</p>\r\n", content_type="text/html")
         try:
-            posts = Posts.objects.filter(owner_id=userInfo).order_by("-pub_date")
+            posts = Posts.objects.filter(author=userInfo).order_by("-pub_date")
         except ObjectDoesNotExist:
             return HttpResponse("<p>This user does not have any posts.</p>\r\n", content_type="text/html")
         
@@ -289,6 +257,7 @@ def posts(request, username):
         except ObjectDoesNotExist:
             return HttpResponse("<p>Username specified does not existin the databasee</p>\r\n", content_type="text/html")
         postList = json.loads(request.body).get("posts")
+
         errorMessage = []
         for post in postList:
             postId = post["guid"]
@@ -313,10 +282,9 @@ def posts(request, username):
                 old_post.description = description
                 old_post.content_type = "text/html"
                 old_post.content = content
-                old_post.owner_id = userInfo
+                old_post.author = userInfo
                 old_post.pub_date = datetime.now().date()
                 old_post.visibility = permission
-                
                 old_post.save()
             except ObjectDoesNotExist:
                 title = post["title"]
@@ -330,7 +298,7 @@ def posts(request, username):
                 permission = post["visibility"]
                 visibility = post["visibility"]
                 
-                post = Posts(title = title, source=source, origin=origin, category=categories, description=description, content_type=contentType, content=content, owner_id=userInfo, permission=permission, pub_date=pubDate, visibility = permission)
+                post = Posts(title = title, source=source, origin=origin, category=categories, description=description, content_type=contentType, content=content, author=userInfo, permission=permission, pub_date=pubDate, visibility = permission)
                 post.save()
 
         return HttpResponse("<p>The posts have been created/modified successfully.</p>", content_type="text/html")
@@ -364,7 +332,7 @@ def posts(request, username):
                 old_post.description = description
                 old_post.content_type = "text/html"
                 old_post.content = content
-                old_post.owner_id = userInfo
+                old_post.author = userInfo
                 old_post.pub_date = datetime.now().date()
                 old_post.visibility = permission
                 
@@ -384,11 +352,11 @@ def posts(request, username):
         except ObjectDoesNotExist:
             return HttpResponse("<p>Username specified does not existin the databasee</p>\r\n", content_type="text/html")
 
-        postInfo = Posts.objects.filter(owner_id=userInfo)
+        postInfo = Posts.objects.filter(author=userInfo)
         
         #server admins and the author has the permissions to delete the post
         for post in postInfo:
-            if userInfo.role == "admin" or post.owner_id.id == userInfo.id:
+            if userInfo.role == "admin" or post.author.id == userInfo.id:
                     post.delete()
             else:
                 return HttpResponse("<p>You do not have permission to delete these posts.</p>", content_type="text/html")
@@ -446,27 +414,16 @@ def post2Json(host, userData, queryset, param):
         categories = queryResult.category.split(",")
         post["categories"] = categories
         comments = {}
-        commentObject = Comment.objects.filter(post_id=queryResult.id)
-        for commentResult in commentObject:
-            commentAuthor = {}
-            CommentAuthorInfo = Users.objects.get(id=commentResult.owner_id)
-            commentAuthor["id"] = CommentAuthorInfo.id
-            commentAuthor["host"] = host
-            commentAuthor["displayname"] = CommentAuthorInfo.username
-            comments["author"] = commentAuthor
-            comments["comment"] = commentResult.comment
-            comments["pubDate"] = commentResult.pub_date
-            #should be SHA1 or UUID encrypted?
-            comments["guid"] = commentResult.id
         post["comments"] = comments
         post["pubDate"] = queryResult.pub_date
         #should be SHA1 or UUID encrypted?
         post["guid"] = queryResult.id
-        post["visibility"] = queryResult.visibility
+        #post["visibility"] = queryResult.visibility
         querylist.append(post)
     post_lists["posts"] = querylist
     
     # curl requires differnt output
+    return 
     if param != "posts":
         return json.loads(json.dumps(post_lists, default=date_handler))
     else:
@@ -550,7 +507,7 @@ def post(request, username, post_id):
                 postInfo = Posts.objects.get(id=post_id)
                 
                 #server admins and the author has the permissions to delete the post
-                if userInfo.role == "admin" or postInfo.owner_id.id == userInfo.id:
+                if userInfo.role == "admin" or postInfo.author.id == userInfo.id:
                     postInfo.delete()
                     print "author has permission"
                     return HttpResponse("<p>Post has been deleted.</p>", content_type="text/html")
@@ -580,7 +537,7 @@ def post(request, username, post_id):
                     permission = post["visibility"]
                     visibility = post["visibility"]
                     
-                    post = Posts(title = title, source=source, origin=origin, category=categories, description=description, content_type=contentType, content=content, owner_id=userInfo, permission=permission, pub_date=pubDate, visibility = permission)
+                    post = Posts(title = title, source=source, origin=origin, category=categories, description=description, content_type=contentType, content=content, author=userInfo, permission=permission, pub_date=pubDate, visibility = permission)
                     post.save()
                 return HttpResponse("<p>A new post has been created!</p>\r\n", content_type="text/html")
             # a post already exists with this ID so modify the old post
@@ -605,7 +562,7 @@ def post(request, username, post_id):
                 old_post.description = description
                 old_post.content_type = "text/html"
                 old_post.content = content
-                old_post.owner_id = userInfo
+                old_post.author = userInfo
                 old_post.pub_date = datetime.now().date()
                 old_post.visibility = permission
 
@@ -639,7 +596,7 @@ def post(request, username, post_id):
             old_post.description = description
             old_post.content_type = "text/html"
             old_post.content = content
-            old_post.owner_id = userInfo
+            old_post.author = userInfo
             old_post.pub_date = datetime.now().date()
             old_post.visibility = permission
 
@@ -653,7 +610,7 @@ def post(request, username, post_id):
         postInfo = Posts.objects.get(id=post_id)
         
         #server admins and the author has the permissions to delete the post
-        if userInfo.role == "admin" or postInfo.owner_id.id == userInfo.id:
+        if userInfo.role == "admin" or postInfo.author.id == userInfo.id:
             postInfo.delete()
             return HttpResponse("<p>Post has been deleted.</p>\r\n", content_type="text/html")
         #user specified is not author/server admin, so give them a warning
