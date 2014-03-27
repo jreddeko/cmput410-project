@@ -379,7 +379,7 @@ posts table
 
 '''
 This method is called by posts to format the query result as desired JSON format
-as ones shown in example_article.json in project webisite:
+as ones shown in example_article.json in project website:
 https://github.com/abramhindle/CMPUT404-project-socialdistribution/blob/master/example-article.json
 
 It takes the database query result and pases the QuerySet and create a properly formatted JSON object.
