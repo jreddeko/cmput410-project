@@ -113,20 +113,22 @@ def wall(request):
             new_post = f.save(commit=False)
             new_post.author = userInfo
             new_post.save()
-        return redirect("wall")
+        else:
+            print "invalid form"
     #GET request
-    else:
-        githubActivity = getGitHubEvents(userInfo.github_account)
-        authorposts = Posts.objects.filter(author=userInfo)
-        currentHost = request.get_host()
-        #queryData = post2Json(currentHost, userInfo, authorposts, '').get("posts")
-        #mergedList = githubActivity + queryData
-        #mergedList.sort(key = lambda item:item["pubDate"], reverse = True)asdfsadfsfd
-        posts = Posts.objects.filter(author=userInfo)
-        comments = Comment.objects.filter(postguid__in=posts.values_list("guid"))
-        #return HttpResponse(str(comments[0].postguid.guid))
-        return render_to_response('main/postwall.html', 
-            {"user_id": userInfo.id, "username": request.session['username'], "posts": posts, 'comments':comments, 'comment_form':CommentForm()}, context)
+    githubActivity = getGitHubEvents(userInfo.github_account)
+    authorposts = Posts.objects.filter(author=userInfo)
+    publicPosts = Posts.objects.filter(permission="PUBLIC").exclude(author=userInfo)
+    currentHost = request.get_host()
+
+    authorData = post2Json(currentHost, authorposts, '').get("posts")
+    publicPosts = post2Json(currentHost, publicPosts, '').get("posts")
+    mergedList = githubActivity + authorData + publicPosts
+    mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
+
+    comments = Comment.objects.filter(postguid__in=authorposts.values_list("guid"))
+    return render_to_response('main/postwall.html', 
+        {"user_id": userInfo.id, "username": request.session['username'], "posts": mergedList, 'comments':comments, 'comment_form':CommentForm()}, context)
 
 # for above method to grab all posts from friends. (Need to watch out for having duplicate posts!
 #def getFriendsPosts(friendObj):
@@ -200,24 +202,7 @@ def friendship_accept(request):
         friend_request.delete()
 
     return redirect("search_users")
-'''
-    RESTful API for One author's posts
-    
-    This function is called when /author<username>/posts is called with GET, POST,
-    PUT or DELETE HTTP requests and it shows information about author's
-    posts.
-    
-    For GET requests, it returns all posts that the user has access to.
-    For POST requests, if an id is specified and if the post exists, then it
-    will update the post to newly given information in POST request body if 
-    the specified user is the author.  If the post does not exist in the
-    database, then it will create a new post with specified author as an author.
-    For PUT request, it will modify the posts in the PUT request body that exists in
-    the database already. For each post that does not exist in the database, the API
-    will output an HTML string to warn the user.
-    For DELETE request, it will delete all posts that the specified user has
-    authored. Only the author and the server admin have the permission to do this.
-'''
+
 def comments(request,username,post_id):
     if request.method == "POST":
         if 'comment_submit_form' in request.POST:
@@ -229,6 +214,25 @@ def comments(request,username,post_id):
                 return redirect("wall")
 
     return None
+
+'''
+    RESTful API for One author's posts
+    
+    This function is called when /author<username>/posts is called with GET, POST,
+    PUT or DELETE HTTP requests and it shows information about author's
+    posts.
+    
+    For GET requests, it returns all posts that the user has access to.
+    For POST requests, if an id is specified and if the post exists, then it
+    will update the post to newly given information in POST request body if
+    the specified user is the author.  If the post does not exist in the
+    database, then it will create a new post with specified author as an author.
+    For PUT request, it will modify the posts in the PUT request body that exists in
+    the database already. For each post that does not exist in the database, the API
+    will output an HTML string to warn the user.
+    For DELETE request, it will delete all posts that the specified user has
+    authored. Only the author and the server admin have the permission to do this.
+    '''
 @csrf_exempt
 def posts(request, username):
     context = RequestContext(request)
@@ -244,7 +248,7 @@ def posts(request, username):
         except ObjectDoesNotExist:
             return HttpResponse("<p>This user does not have any posts.</p>\r\n", content_type="text/html")
         
-        jsonResult = post2Json(currentHost, userInfo, posts, "posts")
+        jsonResult = post2Json(currentHost, posts, "posts")
         # must have content_type parameter to not include HTTPResponse
         # values included in the JSON result to be passed to the AJAX call
         #return jsonResult
@@ -389,19 +393,20 @@ It takes the database query result and pases the QuerySet and create a properly 
 @return JSON object to be sent as a response to an AJAX call
     
 '''
-def post2Json(host, userData, queryset, param):
+def post2Json(host, queryset, param):
     # TODO Date format is currently wrong! May have to change
     # the format when it's being inserted into DB
     post_lists = dict()
     querylist = []
     for queryResult in queryset:
+        authorInfo = Users.objects.get(id=queryResult.author.id)
         user = {}
-        user["id"] = userData.id
+        user["id"] = authorInfo.id
         # TODO change this when we are communicating with other servers
         # they may have to specify their url?
         user["host"] = host
-        user["displayname"] = userData.username
-        user["url"] = host+"/author/"+str(userData.id)
+        user["displayname"] = authorInfo.username
+        user["url"] = host+"/author/"+str(authorInfo.id)
         
         post = {}
         post["title"] = queryResult.title
@@ -415,15 +420,14 @@ def post2Json(host, userData, queryset, param):
         post["categories"] = categories
         comments = {}
         post["comments"] = comments
-        post["pubDate"] = queryResult.pub_date
+        post["pubDate"] = queryResult.pubdate
         #should be SHA1 or UUID encrypted?
-        post["guid"] = queryResult.id
+        post["guid"] = queryResult.guid
         #post["visibility"] = queryResult.visibility
         querylist.append(post)
     post_lists["posts"] = querylist
     
     # curl requires differnt output
-    return 
     if param != "posts":
         return json.loads(json.dumps(post_lists, default=date_handler))
     else:
@@ -437,10 +441,11 @@ that can be serialized by the json python library
 @return         date format that can be serialized by the json library
 
 '''
-# code taken from:
+# code taken and modified from:
 # http://blog.codevariety.com/2012/01/06/python-serializing-dates-datetime-datetime-into-json/
 def date_handler(obj):
-    return obj.isoformat() if hasattr(obj, 'isoformat') else obj
+    print obj
+    return obj.strftime('%b %d, %Y at %H:%M' ) if hasattr(obj, 'isoformat') else obj
 
 '''
 This method get the current host URL to be inserted into the database.
@@ -492,19 +497,18 @@ def post(request, username, post_id):
         #used filter instead of get to use post2Json method
         post = Posts.objects.filter(id=post_id)
         currentHost = request.get_host()
-        jsonResult = post2Json(currentHost, userInfo, post, '')
+        jsonResult = post2Json(currentHost, post, '')
         # must have content_type parameter to not include HTTPResponse
         # values included in the JSON result to be passed to the AJAX call
         return HttpResponse(jsonResult, content_type="application/json")
     elif request.method == 'POST':
         # AJAX call by jQuery needs method to be POST to work so param
         # is passed to identify the intended HTTP method
-        print type(request.POST)
         if "method" in request.POST:
             if request.POST["method"] == "delete":
                 #check if the user is admin/author of post
                 userInfo = Users.objects.get(username=username)
-                postInfo = Posts.objects.get(id=post_id)
+                postInfo = Posts.objects.get(guid=post_id)
                 
                 #server admins and the author has the permissions to delete the post
                 if userInfo.role == "admin" or postInfo.author.id == userInfo.id:

@@ -120,7 +120,7 @@
                     {{ post.content | safe }}
                 </div>
                 <div id="post_author_info-{{ post.guid }}">
-                    <p class="blog-post-meta">Posted on {{post.pubdate}} by <a href="#">{{ post.author.username }}</a></p>
+                    <p class="blog-post-meta">Posted on {{post.pubDate}} by <a href="#">{{ post.author.displayname }}</a></p>
                 </div>
                 <!-- hidden div where it will be storing the permissions value from the DB. Needed when editting the post to load previous contents asynchronously -->
                 <input id="post_permission-{{ post.guid }}" type="hidden" value="{{ post.visibility }}"/>
@@ -143,7 +143,7 @@
                         <form class="form-horizontal" action="/author/{{username}}/posts/{{post.guid}}/comments/" method="post">{% csrf_token %}
                             <label for="id_comment" class="col-sm-3">Your comment:</label>
                             {{ comment_form.comment }}
-                            <input type="submit" name="comment_submit_form" value="Submit" />
+                            <input type="submit" name="comment_submit_form" class="btn btn-primary" value="Submit" />
                             
                         </form>
                     </div>

@@ -17,9 +17,11 @@ $(document).ready(function (){
                    modal: false,
                    width: 300,
                    height: 'auto',
+                   dialogClass: "no-close",
                    buttons: {
                         "Ok": function() {
                             $(this).dialog("close");
+                            $(this).empty().remove();
                         }
                    }
                    
@@ -58,11 +60,12 @@ $(document).ready(function (){
 function deletePost(username, dbId)
 {
     var dialogBox = $("<div id='deleteMessage' class='dialog'><p>Are you sure you want to delete this post?</p></div>");
-    $("#post-"+dbId).append(dialogBox);
+    $("body").append(dialogBox);
     $("#deleteMessage").dialog({
+       autoOpen: true,
        modal: true,
+       dialogClass: "no-close",
        width: 300,
-       height: 'auto',
        buttons: {
            "Delete": function() {
                $(this).dialog("close");
@@ -74,6 +77,7 @@ function deletePost(username, dbId)
                   data: {"method": "delete"},
                   success: function(data) {
                       confirmationDialog(data);
+                      $(this).empty().remove();
                   },
                   error: function(jqXHR, textStatus, errorThrown) {
                       console.log(jqXHR);
@@ -85,7 +89,7 @@ function deletePost(username, dbId)
            },
            "Cancel" : function() {
                 $(this).dialog("close");
-                $(this).dialog("destroy");
+                $(this).empty().remove();
            }
        }
        
