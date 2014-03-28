@@ -196,3 +196,8 @@ h6, .h6 {
 .no-close .ui-dialog-titlebar-close {
     display: none;
 }
+
+.no-close
+{
+    position: absolute !important;
+}
