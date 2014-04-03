@@ -39,9 +39,10 @@ class Comment(models.Model):
     pubDate = models.DateTimeField(auto_now_add=True, blank=True)
 
 class Friends(models.Model):
-	username1 = models.ForeignKey(Users, related_name= "friends_username1",to_field="username")
-	username2 = models.ForeignKey(Users, related_name= "friends_username2",to_field="username")
-	accept = models.BooleanField()
+    username1 = models.TextField()
+    username2 = models.TextField()
+    accept = models.BooleanField()
+    server = models.TextField(blank=True)
 
 class PostsForm(ModelForm):
     class Meta:

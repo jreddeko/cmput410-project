@@ -149,54 +149,48 @@ def search_users(request):
     users = list(Users.objects.all())
     friends = list(Friends.objects.all())
 
-    friend_check = [x.username2.username for x in friends if x.username1.username == me] + [x.username1.username for x in friends if x.username2.username == me]
-    print friend_check
-    return render_to_response('main/search_user.html',{'users': users, 'me': me, 'friends': friends,'check': friend_check }, context)
+    friend_check = [x.username2 for x in friends if x.username1 == me] + [x.username1 for x in friends if x.username2== me]
+    request_check = [x.username2 for x in friends if (x.username1 == me and x.accept== 0)] + [x.username1 for x in friends if (x.username2== me and x.accept== 0)]
+    return render_to_response('main/search_user.html',{'users': users, 'me': me, 'friends': friends,'check': friend_check,'request_pend': request_check }, context)
 
 
 def friendship(request):
     context = RequestContext(request)
 
-    username1 = request.session["username"]
-    user1 = Users.objects.get(username=username1)
-    username2 = request.POST["friendname"]
-    user2 = Users.objects.get(username=username2)
-    accept = 0
-    friends = Friends.objects.create(username1 = user1, username2=user2, accept=accept)
+    user1 = request.session["username"]
+    user2 = request.GET["friendname"]
+
+    friends = Friends.objects.create(username1 = user1, username2=user2, accept=0)
     return redirect("search_users")
 
 def unfriend(request):
     context = RequestContext(request)
 
-    username1 = request.session["username"]
-    user1 = Users.objects.get(username=username1)
-    username2 = request.POST["friendname"]
-    user2 = Users.objects.get(username=username2)
-    
-    friends = Friends.objects.get(username1 = user1, username2=user2)
+    user1 = request.session["username"]
+    user2 = request.GET["friendname"]
+
+    try:
+            friends = Friends.objects.get(username1 = user1, username2=user2)
+    except:
+            friends = Friends.objects.get(username1 = user2, username2=user1)
+
     friends.delete()
     return redirect("search_users")
 
 
 def friendship_accept(request):
     context = RequestContext(request)
-    if request.POST.get('request') == "Accept Request":
-        username2 = request.session["username"]
-        user2 = Users.objects.get(username=username2)
-        username1 = request.POST["friendrequest"]
-        user1 = Users.objects.get(username=username1)
-        accept = 1
-        friend_request = Friends.objects.get(username1 = user1, username2=user2)
-        friend_request.accept = accept
+    if request.GET.get('request') == "Accept Request":
+        user2 = request.session["username"]
+        user1 = request.GET["friendrequest"]
+        friend_request = Friends.objects.get(username1=user1, username2=user2)
+        friend_request.accept = 1
         friend_request.save()
 
-    elif request.POST.get('request') == "Decline Request":
-        username2 = request.session["username"]
-        user2 = Users.objects.get(username=username2)
-        username1 = request.POST["friendrequest"]
-        user1 = Users.objects.get(username=username1)
-        
-        friend_request = Friends.objects.get(username1 = user1, username2=user2)
+    elif request.GET.get('request') == "Decline Request":
+        user2 = request.session["username"]
+        user1 = request.GET["friendrequest"]
+        friend_request = Friends.objects.get(username1=user1, username2=user2)
         friend_request.delete()
 
     return redirect("search_users")
