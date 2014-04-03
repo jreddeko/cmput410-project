@@ -3,17 +3,21 @@
 <head>
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<<<<<<< HEAD
     <title>Friendbook</title>
+=======
+    <title>Blog style?</title>
+    <link href="{% static 'css/jquery-themes/base/jquery.ui.all.css'%}" rel="stylesheet"/>
+>>>>>>> 532e016c0ce8e44d20d19029423c9e05c352a230
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet"/>
     <link href="{% static 'css/blog.css'%}" rel="stylesheet"/>
-    <link href="{% static 'css/jquery-themes/base/jquery.ui.all.css'%}" rel="stylesheet"/>
     <script type="text/javascript" src="{% static 'js/jquery/jquery-1.8.3.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/tinymce/tinymce.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/postwall.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery/ui/jquery.ui.core.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery/ui/jquery.ui.position.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery/ui/jquery.ui.widget.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery/ui/jquery.ui.dialog.js' %}"></script>
+     <script type="text/javascript" src="{% static 'js/postwall.js' %}"></script>
     <script type="text/javascript">
     var username = "{{ username }}";
     </script>
@@ -77,7 +81,7 @@
             </div>
             <!--If it is not a github event, it is a post-->
             {% else %}
-            <div id="post_wall" class="col-sm-8 blog-main">
+            <div id="post_wall-{{ post.guid }}" class="col-sm-8 blog-main">
                 <div id="post-{{ post.guid }}"class="blog-post">
                     <button id="post_delete-{{ post.guid }}" type="button" class="btn btn-primary btn-lg post_buttons">
                         <span class="glyphicon glyphicon-trash"></span> Delete
@@ -119,7 +123,7 @@
                     {{ post.content | safe }}
                 </div>
                 <div id="post_author_info-{{ post.guid }}">
-                    <p class="blog-post-meta">Posted on {{post.pubdate}} by <a href="#">{{ post.author.username }}</a></p>
+                    <p class="blog-post-meta">Posted on {{post.pubDate}} by <a href="#">{{ post.author.displayname }}</a></p>
                 </div>
                 <!-- hidden div where it will be storing the permissions value from the DB. Needed when editting the post to load previous contents asynchronously -->
                 <input id="post_permission-{{ post.guid }}" type="hidden" value="{{ post.visibility }}"/>
@@ -142,7 +146,7 @@
                         <form class="form-horizontal" action="/author/{{username}}/posts/{{post.guid}}/comments/" method="post">{% csrf_token %}
                             <label for="id_comment" class="col-sm-3">Your comment:</label>
                             {{ comment_form.comment }}
-                            <input type="submit" name="comment_submit_form" value="Submit" />
+                            <input type="submit" name="comment_submit_form" class="btn btn-primary" value="Submit" />
                             
                         </form>
                     </div>

@@ -47,7 +47,7 @@ class Friends(models.Model):
 class PostsForm(ModelForm):
     class Meta:
         model = Posts
-        fields = ['title','source','origin','category','description','content_type','content','permission']
+        fields = ['title','category','description','content','permission']
         exclude = ("author",)
     def __init__(self, *args, **kwargs):
         super(PostsForm, self).__init__(*args, **kwargs)

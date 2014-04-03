@@ -14,12 +14,21 @@ $(document).ready(function (){
                  var confirmDialog = $("<div id='confirmation' class='dialog'><p>Please save your other post in editting process before editting another post.</o></div>");
                  $("body").append(confirmDialog);
                  $("#confirmation").dialog({
+                   autoOpen: true,
                    modal: false,
                    width: 300,
-                   height: 'auto',
+                   dialogClass: "no-close",
+                   open: function() {
+                       // the code below is needed to fix the autoscroll problem with jquery UI dialog
+                       // It manually resets the position of the dialog
+                       var parenttop = $("body").position().top;
+                       $(".no-close").css("top",parenttop+200);
+                       $("html, body").scrollTop(parenttop);
+                   },
                    buttons: {
                         "Ok": function() {
                             $(this).dialog("close");
+                            $(this).empty().remove();
                         }
                    }
                    
@@ -60,9 +69,17 @@ function deletePost(username, dbId)
     var dialogBox = $("<div id='deleteMessage' class='dialog'><p>Are you sure you want to delete this post?</p></div>");
     $("#post-"+dbId).append(dialogBox);
     $("#deleteMessage").dialog({
+       autoOpen: true,
        modal: true,
+       dialogClass: "no-close",
        width: 300,
-       height: 'auto',
+       open: function() {
+            // the code below is needed to fix the autoscroll problem with jquery UI dialog
+            // It manually resets the position of the dialog
+           var parenttop = $("#post_wall-"+dbId).position().top;
+           $(".no-close").css("top",parenttop+200);
+           $("html, body").scrollTop(parenttop);
+       },
        buttons: {
            "Delete": function() {
                $(this).dialog("close");
@@ -73,6 +90,7 @@ function deletePost(username, dbId)
                   type: "POST",
                   data: {"method": "delete"},
                   success: function(data) {
+                      $(this).empty().remove();
                       confirmationDialog(data);
                   },
                   error: function(jqXHR, textStatus, errorThrown) {
@@ -85,7 +103,7 @@ function deletePost(username, dbId)
            },
            "Cancel" : function() {
                 $(this).dialog("close");
-                $(this).dialog("destroy");
+                $(this).empty().remove();
            }
        }
        
@@ -108,6 +126,14 @@ function confirmationDialog(message)
            modal: false,
            width: 300,
            height: 'auto',
+           dialogClass: "no-close",
+           open: function() {
+           // the code below is needed to fix the autoscroll problem with jquery UI dialog
+           // It manually resets the position of the dialog
+                var parenttop = $("body").position().top;
+                $(".no-close").css("top",parenttop+200);
+                $("html, body").scrollTop(parenttop);
+           },
            buttons: {
                "Ok": function() {
                     $(this).dialog("close");
@@ -275,5 +301,5 @@ function createForm(id)
                             '</div>'+
                         '</form>'+
                     '</div>');
-    $(form).appendTo($("#post_wall"));
+    $(form).appendTo($("#post_wall-"+id));
 }
