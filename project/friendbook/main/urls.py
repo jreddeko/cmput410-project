@@ -5,7 +5,7 @@ admin.autodiscover()
 
 
 '''
-The first 8 URIs are for viewing the website while the after 9th URI and on are
+The first 11 URIs are for viewing the website while the after 9th URI and on are
 for the RESTful API.  For more information on this RESTful service, please read
 the methods associated with them in views.py.
 '''

@@ -127,8 +127,11 @@ def wall(request):
     mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
 
     comments = Comment.objects.filter(postguid__in=authorposts.values_list("guid"))
+    me = request.session["username"]
+    friends = list(Friends.objects.all())
+    friend_check = [x.username2 for x in friends if (x.username1 == me and x.accept== 1)] + [x.username1 for x in friends if (x.username2== me and x.accept== 1)]
     return render_to_response('main/postwall.html', 
-        {"user_id": userInfo.id, "username": request.session['username'], "posts": mergedList, 'comments':comments, 'comment_form':CommentForm()}, context)
+        {"user_id": userInfo.id, "username": request.session['username'], "posts": mergedList, 'comments':comments, 'comment_form':CommentForm(),'friends': friend_check}, context)
 
 # for above method to grab all posts from friends. (Need to watch out for having duplicate posts!
 #def getFriendsPosts(friendObj):
@@ -236,7 +239,7 @@ def posts(request, username):
         try:
             userInfo = Users.objects.get(username=username)
         except ObjectDoesNotExist:
-            return HttpResponse("<p>Username specified does not existin the database</p>\r\n", content_type="text/html")
+            return HttpResponse("<p>Username specified does not exist in the database</p>\r\n", content_type="text/html")
         try:
             posts = Posts.objects.filter(author=userInfo).order_by("-pub_date")
         except ObjectDoesNotExist:
