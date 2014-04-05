@@ -18,6 +18,7 @@ import time
 from datetime import datetime
 import urllib2
 import uuid
+import urlparse
 
 @require_http_methods(["GET", "POST"])
 def index(request):
@@ -145,11 +146,6 @@ def wall(request):
     publicPosts = post2Json(currentHost, publicPosts).get("posts")
     serverOnlyPosts = getServerOnlyPosts(me, currentHost, friend_check)
     friendsPosts = getAllFriendPosts(me, currentHost, friend_check)
-    
-    print authorData
-    print publicPosts
-    print serverOnlyPosts
-    print friendsPosts
     
     mergedList = githubActivity + authorData + publicPosts + serverOnlyPosts + friendsPosts
     mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
@@ -454,7 +450,7 @@ def current_site_url():
     RESTful API for getting information on one post specified in post_id
     of the URI
     
-    This function is called when /author/<username>/posts/<post_id> is called with GET, POST,
+    This function is called when /posts/<post_id> is called with GET, POST,
     PUT or DELETE HTTP requests and it shows information about the specified post.
     
     For GET requests, it returns relevant information about the specified post.(the
@@ -468,7 +464,6 @@ def current_site_url():
     the post.
     
     @param request      information on HTTP Request
-    @param username      (currently DB ID but should be SHA1 ID) of user in URI
     @param post_id      (currently DB ID but should be SHA1 ID) of post in URI
     
     @return             For GET, JSON representation of specified post information
@@ -477,18 +472,15 @@ def current_site_url():
                         For Delete, message indicating deletion of post
 '''
 @csrf_exempt
-def post(request, username, post_id):
+def post(request, post_id):
+    username = request.session["username"]
+    currentHost = request.get_host()
     if request.method == 'GET':
-        #need to add permission stuff when friends are implemented
         userInfo = Users.objects.get(username=username)
-        #used filter instead of get to use post2Json method
-        post = Posts.objects.filter(id=post_id)
-        currentHost = request.get_host()
+        post = Posts.objects.filter(guid=post_id)
         jsonResult = post2Json(currentHost, post)
-        # must have content_type parameter to not include HTTPResponse
-        # values included in the JSON result to be passed to the AJAX call
         return HttpResponse(jsonResult, content_type="application/json")
-    elif request.method == 'POST':
+    if request.method == 'POST':
         # AJAX call by jQuery needs method to be POST to work so param
         # is passed to identify the intended HTTP method
         if "method" in request.POST:
@@ -507,66 +499,47 @@ def post(request, username, post_id):
                     return HttpResponse("<p>You do not have permission to delete this post.</p>", content_type="text/html")
         # for curl POST methods!
         else:
-            try:
-                userInfo = Users.objects.get(username=username)
-            except ObjectDoesNotExist:
-                return HttpResponse("<p>Username specified does not existin the databasee</p>\r\n", content_type="text/html")
-            try:
-                #if the post exists, then modify it, if  not then create a new one.
-                old_post = Posts.objects.get(id=post_id)
-            except ObjectDoesNotExist:
-                postList = json.loads(request.body).get("posts")
-                for post in postList:
-                    title = post["title"]
-                    origin = post["origin"]
-                    source = post["source"]
-                    description = post["description"]
-                    contentType = post["content_type"]
-                    content = post["content"]
-                    categories = ",".join(post["categories"])
-                    pubDate = datetime.now().date()
-                    permission = post["visibility"]
-                    visibility = post["visibility"]
-                    
-                    post = Posts(title = title, source=source, origin=origin, category=categories, description=description, content_type=contentType, content=content, author=userInfo, permission=permission, pub_date=pubDate, visibility = permission)
-                    post.save()
-                return HttpResponse("<p>A new post has been created!</p>\r\n", content_type="text/html")
-            # a post already exists with this ID so modify the old post
-            postList = json.loads(request.body).get("posts")
-            for post in postList:
-                title = post["title"]
-                origin = post["origin"]
-                source = post["source"]
-                description = post["description"]
-                contentType = post["content_type"]
-                content = post["content"]
-                categories = ",".join(post["categories"])
-                pubDate = datetime.now().date()
-                permission = post["visibility"]
-                visibility = post["visibility"]
+            userInfo = Users.objects.get(username=username)
+            old_post = Posts.objects.get(guid=post_id)
 
-                old_post.title = title
-                old_post.permission = permission
-                old_post.source = source
-                old_post.origin = origin
-                old_post.category = categories
-                old_post.description = description
-                old_post.content_type = "text/html"
-                old_post.content = content
-                old_post.author = userInfo
-                old_post.pub_date = datetime.now().date()
-                old_post.visibility = permission
+            postList = urlparse.parse_qs(request.body)
+                
+            title = str(postList["title"][0])
+            origin = currentHost
+            source = currentHost
+            description = str(postList["description"][0])
+            contentType = "text/html"
+            content = str(postList["content"][0])
+            categories = str(postList["category"][0])
+            pubDate = datetime.now().date()
+            visibility = str(postList["permission"][0])
 
-                old_post.save()
-            return HttpResponse("<p>The Specified post has been updated!</p>\r\n", content_type="text/html")
+            old_post.title = title
+            old_post.source = source
+            old_post.origin = origin
+            old_post.category = categories
+            old_post.description = description
+            old_post.content_type = "text/html"
+            old_post.content = content
+            old_post.author = userInfo
+            old_post.pubDate = datetime.now().date()
+            old_post.visibility = visibility
+
+            old_post.save()
+            
+            userInfo = Users.objects.get(username=username)
+            post = Posts.objects.filter(guid=post_id)
+            jsonResult = post2Json(currentHost, post)
+            
+            return HttpResponse(json.dumps(jsonResult), content_type="application/json")
     elif request.method == 'PUT':
         try:
             userInfo = Users.objects.get(username=username)
-            old_post = Posts.objects.get(id=post_id)
+            old_post = Posts.objects.get(guid=post_id)
         except ObjectDoesNotExist:
             return HttpResponse("<p>Username/Post ID specified does not existin the databasee</p>\r\n", content_type="text/html")
 
-        postList = json.loads(request.body).get("posts")
+        postList = json.loads(urlparse.parse_qs(request.body))
         for post in postList:
             title = post["title"]
             origin = post["origin"]
@@ -576,11 +549,9 @@ def post(request, username, post_id):
             content = post["content"]
             categories = ",".join(post["categories"])
             pubDate = datetime.now().date()
-            permission = post["visibility"]
             visibility = post["visibility"]
 
             old_post.title = title
-            old_post.permission = permission
             old_post.source = source
             old_post.origin = origin
             old_post.category = categories
@@ -588,7 +559,7 @@ def post(request, username, post_id):
             old_post.content_type = "text/html"
             old_post.content = content
             old_post.author = userInfo
-            old_post.pub_date = datetime.now().date()
+            old_post.pubDate = datetime.now().date()
             old_post.visibility = permission
 
             old_post.save()
@@ -598,7 +569,7 @@ def post(request, username, post_id):
     elif request.method == 'DELETE':
         #check if the user is admin/author of post
         userInfo = Users.objects.get(username=username)
-        postInfo = Posts.objects.get(id=post_id)
+        postInfo = Posts.objects.get(guid=post_id)
         
         #server admins and the author has the permissions to delete the post
         if userInfo.role == "admin" or postInfo.author.id == userInfo.id:

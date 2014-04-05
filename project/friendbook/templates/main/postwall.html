@@ -42,7 +42,7 @@
                     </div>
                     <div class="navbar-collapse collapse">
                         <ul class="nav navbar-nav">
-                            <li class="active"><a href="#">Post Wall</a></li>
+                            <li class="active"><a href="{% url 'wall' %}">Post Wall</a></li>
                             <li><a href="{% url 'newpost' %}">Create Post</a></li>
                             <li><a href="{% url 'search_users' %}">Search Users</a></li>
                             <li><a href="{% url 'account' %}">Account Management</a></li>
@@ -64,7 +64,9 @@
             <div class="col-sm-3 col-sm-offset-1 blog-sidebar list_friends">
                 <div class="sidebar-module sidebar-module-inset">
                     <h2>View Posts From:</h2>
+                    <h3><a href="#" id="all_posts">-- All --</a></h3>
                     <h3> <a href="#" id="public_posts">-- Public --</a> </h3>
+                    <h3> <a href="#" id="my_posts">-- Me --</a> </h3>
                     <h3> -- Friends -- </h3>
                     {% for friend in friends %}
                         <a class="friend_lists" href="#" id="{{ friend }}">{{friend}}</a>
@@ -90,12 +92,14 @@
             {% else %}
             <div id="post_wall-{{ post.guid }}" class="col-sm-8 blog-main">
                 <div id="post-{{ post.guid }}"class="blog-post">
+                    {% if post.author.id == user_id  %}
                     <button id="post_delete-{{ post.guid }}" type="button" class="btn btn-primary btn-lg post_buttons">
                         <span class="glyphicon glyphicon-trash"></span> Delete
                     </button>
                     <button id="post_edit-{{ post.guid }}" type="button" class="btn btn-primary btn-lg post_buttons">
                         <span class="glyphicon glyphicon-pencil"></span> Edit
                     </button>
+                    {% endif %}
                     <h2 class="blog-post-title">{{ post.title }}</h2>
                     {% if post.categories %}
                     <div id="post_category-{{ post.guid }}">

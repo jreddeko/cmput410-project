@@ -2,63 +2,32 @@
  * Javascript used in postwall.html
  */
 $(document).ready(function (){
-    $(".post_buttons").click(function(e) {
+    postButtonClickEvent();
+    
+    $("#all_posts").click(function(e) {
         e.preventDefault();
-        // reactivate the tinymce with the contents inside
-        var currentdbId = $(this).attr("id").split("-")[1];
-                             
-        if($(this).text().trim() == "Edit")
-        {
-            if($(".edit_enabled").length >  0)
-             {
-                 var confirmDialog = $("<div id='confirmation' class='dialog'><p>Please save your other post in editting process before editting another post.</o></div>");
-                 $("body").append(confirmDialog);
-                 $("#confirmation").dialog({
-                   autoOpen: true,
-                   modal: false,
-                   width: 300,
-                   dialogClass: "no-close",
-                   open: function() {
-                       // the code below is needed to fix the autoscroll problem with jquery UI dialog
-                       // It manually resets the position of the dialog
-                       var parenttop = $("body").position().top;
-                       $(".no-close").css("top",parenttop+200);
-                       $("html, body").scrollTop(parenttop);
-                   },
-                   buttons: {
-                        "Ok": function() {
-                            $(this).dialog("close");
-                            $(this).empty().remove();
-                        }
-                   }
-                   
-                });
-             }
-             else
-             {
-                text2form(currentdbId);
-             
-                $("#edit_cancel").click(function(e) {
-                     e.preventDefault();
-                     $("#post-"+currentdbId).css("display", "block");
-                     $("#edit_post-"+currentdbId).empty().remove();
-                });
-             }
-             
-        }
-        else if($(this).text().trim() == "Delete")
-        {
-            deletePost(username, currentdbId)
-        }
+        $.ajax({
+            url: "http://"+window.location.host+"/author/posts/",
+            type: "GET",
+            success: function(data) {
+                displayJsonData(data["posts"]);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR);
+                console.log(textStatus);
+                console.log(errorThrown);
+            }
+
+        });
     });
                   
     $("#public_posts").click(function(e){
-        e.preventDefault;
+        e.preventDefault();
         $.ajax({
               url: "http://"+window.location.host+"/posts/",
               type: "GET",
               success: function(data) {
-                  displayJsonData(data);
+                  displayJsonData(data["posts"]);
               },
               error: function(jqXHR, textStatus, errorThrown) {
                   console.log(jqXHR);
@@ -69,14 +38,33 @@ $(document).ready(function (){
           });
     });
                   
+    $("#my_posts").click(function(e){
+        e.preventDefault();
+        var currentUser = $("h1.blog-title").first().text().trim();
+        $.ajax({
+              url: "http://"+window.location.host+"/author/"+currentUser+"/posts/",
+              type: "GET",
+              success: function(data) {
+                  displayJsonData(data["posts"]);
+              },
+              error: function(jqXHR, textStatus, errorThrown) {
+                  console.log(jqXHR);
+                  console.log(textStatus);
+                  console.log(errorThrown);
+              }
+              
+        });
+    });
+
+                  
     $(".friend_lists").click(function(e){
-        e.preventDefault;
+        e.preventDefault();
         var username = $(this).text().trim();
         $.ajax({
               url: "http://"+window.location.host+"/author/"+username+"/posts/",
               type: "GET",
               success: function(data) {
-                  displayJsonData(data);
+                  displayJsonData(data["posts"]);
               },
               error: function(jqXHR, textStatus, errorThrown) {
                   console.log(jqXHR);
@@ -89,6 +77,58 @@ $(document).ready(function (){
                   
 });
 
+function postButtonClickEvent()
+{
+    $(".post_buttons").click(function(e) {
+         e.preventDefault();
+         // reactivate the tinymce with the contents inside
+         var currentdbId = $(this).attr("id").split("-")[1];
+         
+         if($(this).text().trim() == "Edit")
+         {
+             if($(".edit_enabled").length >  0)
+             {
+                 var confirmDialog = $("<div id='confirmation' class='dialog'><p>Please save your other post in editting process before editting another post.</o></div>");
+                 $("body").append(confirmDialog);
+                 $("#confirmation").dialog({
+                       autoOpen: true,
+                       modal: false,
+                       width: 300,
+                       dialogClass: "no-close",
+                       open: function() {
+                           // the code below is needed to fix the autoscroll problem with jquery UI dialog
+                           // It manually resets the position of the dialog
+                           var parenttop = $("body").position().top;
+                           $(".no-close").css("top",parenttop+200);
+                           $("html, body").scrollTop(parenttop);
+                       },
+                       buttons: {
+                           "Ok": function() {
+                               $(this).dialog("close");
+                               $(this).empty().remove();
+                           }
+                       }
+                       
+                   });
+             }
+             else
+             {
+                 text2form(currentdbId);
+                 
+                 $("#edit_cancel").click(function(e) {
+                     e.preventDefault();
+                     $("#post-"+currentdbId).css("display", "block");
+                     $("#edit_post-"+currentdbId).empty().remove();
+                 });
+             }
+         }
+         else if($(this).text().trim() == "Delete")
+         {
+             deletePost(username, currentdbId)
+         }
+     });
+}
+
 /**
  * Takes the JSON data returned from the GET requests and
  * displays them in the post wall main page.
@@ -98,66 +138,87 @@ $(document).ready(function (){
 function displayJsonData(json)
 {
     console.log(json);
-    var posts = json["posts"];
+    var posts = json;
     $(".blog-main").remove();
+    var currentUser = $("h1.blog-title").first().text().trim();
     
     for(var i=0; i < posts.length; i++)
     {
-        var postid = posts[i]["guid"];
-        var postmain = $("<div id='post_wall-"+postid+"' class='col-sm-8 blog-main'></div>");
-        var postdiv = $("<div id='post-"+postid+"' class='blog-post'></div>");
+        var id = posts[i]["guid"];
         
-        var deleteButton = $('<button id="post_delete-'+postid+'" type="button" class="btn btn-primary btn-lg post_buttons"><span class="glyphicon glyphicon-trash"></span> Delete</button>');
-        var editButton = $('<button id="post_edit-'+posts[i]["guid"]+'" type="button" class="btn btn-primary btn-lg post_buttons"><span class="glyphicon glyphicon-pencil"></span> Edit</button>');
-        var header = $('<h2 class="blog-post-title">'+ posts[i]["title"] +'</h2>');
-        
-        var categories = posts[i]["categories"];
-        for(var cat_ind = 1; cat_ind < posts[i]["categories"].length; cat_ind++)
-        {
-            categories += ","+ posts[i]["categories"][cat_ind];
-        }
-        var cat_div = $('<div id="post_category-'+postid+'"><p class="blog-post-meta">Categories: <span>'+categories+'</span></p></div>');
-        var source = $('<div id="post_source-'+postid+'"><p class="blog-post-meta" style="margin-bottom:2px;">Source: <span>'+posts[i]["source"]+'<span></p></div>');
-        var origin = $('<div id="post_origin-'+postid+'"><p class="blog-post-meta">Origin: <span>'+posts[i]["origin"]+'<span></p></div>');
-        var description = $('<div id="post_description-'+postid+'"><p class="blog-post-meta">Description of the Post: <span>'+posts[i]["description"]+'</span></p></div>');
-        var content = $('<div id="post_content-'+postid+'" class="blog_content">'+posts[i]["content"]+'</div>');
-        var authorinfo = $('<div id="post_author_info-'+postid+'"><p class="blog-post-meta">Posted on '+posts[i]["pubDate"]+' by <a href="#">'+posts[i]["author"].displayname+'</a></p></div>');
-        var hiddenPermission = $('<input id="post_permission-'+postid+'" type="hidden" value="'+posts[i]["visibility"]+'"/>');
-        var commentContainer = $('<div id="post_comment-'+postid+'" class="well"></div>');
-        var commentHeader = $('<h4> Comments </h4>');
-        // need code to process comments when the view post2json has comments processed
-        /*
-         for(var comment_ind = 0; comment_ind < posts[i]["comments"].length; comment_ind++)
-         {
-         var comment = posts[i]["comments"][comment_ind];
-         var commentDiv = $('<div id="post_comment-'+comment.guid+'" class="post_comments"><p> '+comment.comment+' </p><p class="blog-post-meta">Commented by: {{ comment.author.username }}</p></div>')
-         }*/
-        var commentForm = $('<div id="post_commentform--'+postid+'" class="well">'+
-                            '<div class="form-group">'+
-                            '<form class="form-horizontal" action="/author/{{username}}/posts/'+postid+'/comments/" method="post">'+
-                            '<label for="id_comment" class="col-sm-3">Your comment:</label>'+
-                            '<textarea cols="40" id="id_comment" name="comment" rows="10"></textarea>'+
-                            '<input type="submit" name="comment_submit_form" class="btn btn-primary" value="Submit" /></form></div></div>');
-        
-        $(commentContainer).append(commentHeader);
-        
-        $(postdiv).append(deleteButton);
-        $(postdiv).append(editButton);
-        $(postdiv).append(header);
-        $(postdiv).append(cat_div);
-        $(postdiv).append(source);
-        $(postdiv).append(origin);
-        $(postdiv).append(description);
-        $(postdiv).append(content);
-        $(postdiv).append(authorinfo);
-        $(postdiv).append(hiddenPermission);
-        $(postdiv).append(commentContainer);
-        $(postdiv).append(commentForm);
-        
-        $(postmain).append(postdiv);
+        var postMainDiv = makePostDiv(id, currentUser, posts[i]);
         
         $("#post_wall_container").append(postmain);
     }
+    postButtonClickEvent();
+}
+
+function makePostDiv(postid, currentUser, post)
+{
+    var postmain = $("<div id='post_wall-"+postid+"' class='col-sm-8 blog-main'></div>");
+    var postdiv = $("<div id='post-"+postid+"' class='blog-post'></div>");
+    
+    
+    // do not display the delete and edit button if the current user is not the author of the post.
+    if(currentUser == post["author"].displayname)
+    {
+        var deleteButton = $('<button id="post_delete-'+postid+'" type="button" class="btn btn-primary btn-lg post_buttons"><span class="glyphicon glyphicon-trash"></span> Delete</button>');
+        var editButton = $('<button id="post_edit-'+postid+'" type="button" class="btn btn-primary btn-lg post_buttons"><span class="glyphicon glyphicon-pencil"></span> Edit</button>');
+    }
+    
+    
+    var header = $('<h2 class="blog-post-title">'+ post["title"] +'</h2>');
+    
+    var categories = post["categories"];
+    for(var cat_ind = 1; cat_ind < post["categories"].length; cat_ind++)
+    {
+        categories += ","+ post["categories"][cat_ind];
+    }
+    var cat_div = $('<div id="post_category-'+postid+'"><p class="blog-post-meta">Categories: <span>'+categories+'</span></p></div>');
+    var source = $('<div id="post_source-'+postid+'"><p class="blog-post-meta" style="margin-bottom:2px;">Source: <span>'+post["source"]+'<span></p></div>');
+    var origin = $('<div id="post_origin-'+postid+'"><p class="blog-post-meta">Origin: <span>'+post["origin"]+'<span></p></div>');
+    var description = $('<div id="post_description-'+postid+'"><p class="blog-post-meta">Description of the Post: <span>'+post["description"]+'</span></p></div>');
+    var content = $('<div id="post_content-'+postid+'" class="blog_content">'+post["content"]+'</div>');
+    var authorinfo = $('<div id="post_author_info-'+postid+'"><p class="blog-post-meta">Posted on '+post["pubDate"]+' by <a href="#">'+post["author"].displayname+'</a></p></div>');
+    var hiddenPermission = $('<input id="post_permission-'+postid+'" type="hidden" value="'+post["visibility"]+'"/>');
+    var commentContainer = $('<div id="post_comment-'+postid+'" class="well"></div>');
+    var commentHeader = $('<h4> Comments </h4>');
+    
+    $(commentContainer).append(commentHeader);
+    for(var comment_ind = 0; comment_ind < post["comments"].length; comment_ind++)
+    {
+        
+        var comment = post["comments"][comment_ind];
+        var commentDiv = $('<div id="post_comment-'+comment.guid+'" class="post_comments"><p> '+comment.comment+' </p><p class="blog-post-meta">Commented by: '+comment.author.displayname+'</p></div>');
+        $(commentContainer).append(commentDiv);
+    }
+    
+    var commentForm = $('<div id="post_commentform-'+postid+'" class="well">'+
+                        '<div class="form-group">'+
+                        '<form class="form-horizontal" action="http://'+window.location.host+'/author/'+currentUser+'/posts/'+postid+'/comments/" method="post">'+
+                        '<label for="id_comment" class="col-sm-3">Your comment:</label>'+
+                        '<textarea cols="40" id="id_comment" name="comment" rows="10"></textarea>'+
+                        '<input type="submit" name="comment_submit_form" class="btn btn-primary" value="Submit" /></form></div></div>');
+    
+    if(currentUser == post["author"].displayname)
+    {
+        $(postdiv).append(deleteButton);
+        $(postdiv).append(editButton);
+    }
+    
+    $(postdiv).append(header);
+    $(postdiv).append(cat_div);
+    $(postdiv).append(source);
+    $(postdiv).append(origin);
+    $(postdiv).append(description);
+    $(postdiv).append(content);
+    $(postdiv).append(authorinfo);
+    $(postdiv).append(hiddenPermission);
+    $(postdiv).append(commentContainer);
+    $(postdiv).append(commentForm);
+    
+    $(postmain).append(postdiv);
+    return postmain
 }
 
 /**
@@ -192,7 +253,7 @@ function deletePost(username, dbId)
                
                // PUT and DELETE type is not supported by firefox
                $.ajax({
-                  url: "http://"+window.location.host+"/author/"+username+"/posts/"+dbId+"/",
+                  url: "http://"+window.location.host+"/posts/"+dbId+"/",
                   type: "POST",
                   data: {"method": "delete"},
                   success: function(data) {
@@ -265,16 +326,10 @@ function text2form(currentdbId)
     var originContent = $("#post_origin-"+currentdbId).find("span").first().text();
     var categoryContent = $("#post_category-"+currentdbId).find("span").first().text();
     var description = $("#post_description-"+currentdbId).find("span").first().text();
-    var bodyContent = '';
-    $("#post_content-"+currentdbId).children().each(function() {
-        if(this.tagName != "h2")
-        {
-            bodyContent += $(this).html();
-        }
-    });
+    var bodyContent = $("#post_content-"+currentdbId).html();
     var permissionValue = $("#post_permission-"+currentdbId).val();
     
-        createForm(currentdbId);
+    createForm(currentdbId);
     
     // initialize the tinyMCE editor for the newly added textarea and load the content
     $("#edit_post_content-"+currentdbId).ready(function() {
@@ -329,6 +384,47 @@ function text2form(currentdbId)
     });
     
     $("#edit_post_description-"+currentdbId).val(description);
+    submitUpdate();
+}
+
+function submitUpdate()
+{
+    $("#update_form").submit(function(e) {
+         e.preventDefault();
+         var currentUser = $("h1.blog-title").first().text().trim();
+         var url = $(this).attr("action");
+         var idInfo = $(this).find("select").first().attr("id").split("-");
+         var permissionVal = $("#post_permission-"+idInfo[1]).val();
+         var categoryVal = $("#edit_post_category-"+idInfo[1]).val();
+         var titleVal = $("#post_title-"+idInfo[1]).val();
+         var descriptionVal = $("#edit_post_description-"+idInfo[1]).val();
+         var contentVal = $("#edit_post_content-"+idInfo[1]).val();
+         $.ajax({
+                url: url,
+                type: "POST",
+                data: {
+                    "id": idInfo[1],
+                    "permission": permissionVal,
+                    "category": categoryVal,
+                    "title": titleVal,
+                    "description": descriptionVal,
+                    "content": contentVal
+                },
+                success: function(data) {
+                    var newpostDiv = makePostDiv(idInfo[1], currentUser, data["posts"][0]);
+                
+                    $("#edit_post-"+idInfo[1]).empty().remove();
+                    $("#post_wall-"+idInfo[1]).replaceWith(newpostDiv);
+                    postButtonClickEvent();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(jqXHR);
+                    console.log(textStatus);
+                    console.log(errorThrown);
+                }
+                
+          });
+     });
 }
 
 /**
@@ -342,44 +438,25 @@ function createForm(id)
 {
     var form = $('<div id="edit_post-'+id+'" class="edit_enabled"class="well">'+
                     '<h3>Edit Post</h3>'+
-                    '<form class="form-horizontal" action="" method="POST">'+
+                    '<form id="update_form" class="form-horizontal" action="http://127.0.0.1:8000/posts/'+id+'/" method="POST">'+
                         '<div class="form-group">'+
                             '<label for="post_permissions" class="col-sm-3">Permissions:</label>'+
                             '<div class="col-sm-9">'+
                                 '<select id="edit_post_permissions-'+id+'" name="post_permissions-'+id+'" class="col-sm-9 form-control" style="width: 90%;">'+
-                                    '<option value="private" selected="selected">Private</option>'+
-                                        '<option value="spec_author">Specify</option>'+
-                                        '<option value="friends">Friends</option>'+
-                                        '<option value="friendsoffriends">Friends of my friends</option>'+
-                                        '<option value="local">Friends within my host</option>'+
-                                        '<option value="public">Public</option>'+
+                                    '<option value="PUBLIC" selected="selected">Public</option>'+
+                                        '<option value="FOAF">Friend of All Friends</option>'+
+                                        '<option value="FRIENDS">Friends</option>'+
+                                        '<option value="PRIVATE">Private</option>'+
+                                        '<option value="SERVERONLY">Server only</option>'+
                                     '</select>'+
                                 '</div>'+
                             '</div>'+
-                             '<div id="spec_author_div-'+id+'" class="form-group">'+
-                                    '<label for="spec_author_input-'+id+'" class="col-sm-3"> Author\'s username:</label>'+
-                                    '<div class="col-sm-9">'+
-                                        '<input id="spec_author_input-'+id+'" name="spec_author_input-'+id+'" style="width: 90%;" placeholder="Please input the author\'s username."/>'+
-                                    '</div>'+
-                                '</div>'+
                             '<div class="form-group">'+
                                 '<label for="post_title-'+id+'" class="col-sm-3">Title: </label>'+
                                 '<div class="col-sm-9">'+
                                     '<input type="text" id="post_title-'+id+'" name="post_title-'+id+'" style="width: 90%;" placeholder="Title of the post"/>'+
                                 '</div>'+
                             '</div>'+
-                 '<div class="form-group">'+
-                    '<label for="edit_post_source-'+id+'" class="col-sm-3">Source of the Post: </label>'+
-                    '<div class="col-sm-9">'+
-                        '<input type="text" id="edit_post_source-'+id+'" name="post_source-'+id+'" style="width: 90%;" placeholder="Source URI of the post"/>'+
-                    '</div>'+
-                 '</div>'+
-                 '<div class="form-group">'+
-                    '<label for="edit_post_origin-'+id+'" class="col-sm-3">Origin of the Post: </label>'+
-                    '<div class="col-sm-9">'+
-                        '<input type="text" id="edit_post_origin-'+id+'" name="post_origin-'+id+'" style="width: 90%;" placeholder="Origin of the post (URI)"/>'+
-                    '</div>'+
-                 '</div>'+
                  '<div class="form-group">'+
                     '<label for="edit_post_category-'+id+'" class="col-sm-3">Category of the Post: </label>'+
                     '<div class="col-sm-9">'+
