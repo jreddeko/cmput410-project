@@ -10,6 +10,7 @@ PERMISSION_LEVELS = (
 )
 
 class Users(models.Model):
+    guid = models.CharField(max_length=100, primary_key=True)
     username = models.TextField(unique=True)
     password = models.TextField()
     role = models.TextField()

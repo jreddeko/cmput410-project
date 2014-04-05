@@ -35,6 +35,7 @@ def index(request):
                 if ((Users.objects.get(username = username, password = password)).active == 1):
                   request.session["loggedIn"] = True
                   request.session["username"] = username
+                  request.session["guid"] = Users.objects.get(username = username).guid
                 
                   return redirect("wall")
                 else:
@@ -42,6 +43,7 @@ def index(request):
             else:
                 return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
         else:
+            guid = uuid.uuid4().int
             username = request.POST["username"]
             password = request.POST["password"]
             role = "Author"
@@ -49,11 +51,8 @@ def index(request):
             active = 0
             github = request.POST["github"]
             
-            if ((username == "") or (password == "")):
-                return render_to_response('main/index.html', {"signupError": "Error: one or more missing fields"}, context)
-            
             try:
-                newUser = Users(username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
+                newUser = Users(guid = guid, username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
                 newUser.save()
             except IntegrityError as e:
                 return render_to_response('main/index.html', {"signupError": "Error: username already exists"}, context)
@@ -63,15 +62,19 @@ def index(request):
 @require_http_methods(["GET", "POST"])
 def account(request):
   context = RequestContext(request)
-  username = request.session["username"]
+  guid = request.session["guid"]
   message = ""
+  error = ""
 
   if (request.method == "POST"):
-    Users.objects.filter(username = username).update(password = request.POST["password"], github_account = request.POST["github"])
-    message = "Account successfully updated"
+    if (len(Users.objects.exclude(guid = guid).filter(username = request.POST["username"])) == 0):
+      Users.objects.filter(guid = guid).update(username = request.POST["username"], password = request.POST["password"], github_account = request.POST["github"])
+      message = "Account successfully updated"
+    else:
+      error = "Username already exists"
 
-  user = Users.objects.get(username = username)
-  return render_to_response("main/account.html", {"password": user.password, "github": user.github_account, "message": message}, context)
+  user = Users.objects.get(guid = guid)
+  return render_to_response("main/account.html", {"username": user.username, "password": user.password, "github": user.github_account, "message": message, "error": error}, context)
 
 @require_http_methods(["GET"])
 def logout(request):
@@ -79,6 +82,7 @@ def logout(request):
 
   request.session["loggedIn"] = False
   request.session["username"] = ""
+  request.session["guid"] = ""
 
   return redirect("index")
   
@@ -667,62 +671,50 @@ def friend (request, username, friend_id):
   else: 
     return HttpResponseNotAllowed
   
+@require_http_methods(["GET", "POST", "PUT", "DELETE"])
 @csrf_exempt
-def user(request, username):
+def user(request, userID):
   context=RequestContext(request)
-  if request.method == 'GET':
-    user = Users.objects.get(username=username)
-    reponse_data = serializers.serialize('json', [user])
-    return HttpResponse(reponse_data) 
-  elif request.method == 'POST':
-    user = Users.objects.get(username=request.POST['username'])
-    if   (request.POST['method']=="delete"):
-      Users.objects.get(username=request.POST['username']).delete()
-      context['users'] = list(Users.objects.all())
-      return render_to_response('main/server_admin.html', context)
-    elif (request.POST['method']=="change"):
-      context['userprofile']= [user]
-      context['users'] = list(Users.objects.all())
-      return render_to_response('main/auth_user.html', context)
-    elif (request.POST['method']=="add"):
-      user.active = True
-      user.save()
-      context['users'] = list(Users.objects.all())
-      return render_to_response('main/server_admin.html', context)
-    elif (request.POST['method']=="edit"):
-      if 'name' in request.POST:
-        doSomething()
-      elif 'password' in request.POST:
-        user.password = request.POST['password']
-      elif 'role' in request.POST:
-        user.role = request.POST['role']
-      elif 'register_date' in request.POST:
-        user.register_date = request.POST['register_date']
-      elif 'github_account' in request.POST:
-        user.github_account = request.POST['github_account']
-      user.save()
-      context['users'] = list(Users.objects.all())
-      return render_to_response('main/server_admin.html', context)
-    else:
-      return HttpResponse("Error")
 
-  elif request.method == 'PUT':
-    #add user 
-    #eg curl -X PUT -H "Content-Type: application/json" -d '{"password":"asdf", "role":"author"}' http://localhost:8000/friendbook/user/jasonreddekopp/
-    if(Users.objects.filter(username=username).count() > 0 ):
-      return HttpResponse("User exists\n")
-    b = json.loads(request.body)
-    Users.objects.create(username = username, password = b['password'], role = b['role'], active = False, github_account = "")
-    return HttpResponse("User Created\n")
-  elif request.method == 'DELETE':
-    #delete user
-    #eg curl -X DELETE http://localhost:8000/friendbook/user/jasonreddekopp/
-    Users.objects.get(username=username).delete()
-    return HttpResponse("User Deleted\n")
-  else: 
-    return HttpResponseNotAllowed
+  if (request.method == "GET"):
+    if (len(Users.objects.filter(guid = userID)) == 1):
+      #if the user exists, return their data
+      user = Users.objects.get(guid = userID)
+      return HttpResponse(json.dumps({"guid": userID, "username": user.username, "password": user.password, "role": user.role, "registerDate": str(user.register_date), "active": user.active, "github": user.github_account}))
+    else:
+      #if the user doesn't exist, return an error message
+      return HttpResponse(json.dumps({"error": "The requested user does not exist"}))
+  elif ((request.method == "POST") or (request.method == "PUT")):
+    data = json.loads(request.body)
+
+    if (len(Users.objects.exclude(guid = userID).filter(username = data["username"])) == 1):
+      #is the username already taken?
+      return HttpResponse(json.dumps({"error": "Username already exists"}))
+    elif (len(Users.objects.filter(guid = userID)) == 1):
+      #if the user exists, update it
+      Users.objects.filter(guid = userID).update(username = data["username"], password = data["password"], github_account = data["github"])
+    else:
+      #if the user doesn't exist, create it
+      username = data["username"]
+      password = data["password"]
+      role = "Author"
+      registerDate = datetime.now().date()
+      active = 0
+      github = data["github"]
+            
+      newUser = Users(guid = userID, username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
+      newUser.save()
+
+    user = Users.objects.get(guid = userID)
+    return HttpResponse(json.dumps({"guid": userID, "username": user.username, "password": user.password, "role": user.role, "registerDate": str(user.register_date), "active": user.active, "github": user.github_account}))
+  else:
+    if (len(Users.objects.filter(guid = userID)) == 1):
+      #if the user exists, delete it
+      Users.objects.get(guid = userID).delete()
+      return HttpResponse(json.dumps({"message": "The user has been successfully deleted"}))
+    else:
+      #if the user doesn't exist, return an error message
+      return HttpResponse(json.dumps({"error": "The requested user does not exist"}))
 
 def doSomething():
   return null
-
-

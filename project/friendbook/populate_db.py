@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 import pytz
+import uuid
 utc=pytz.UTC
 
 def populate():
@@ -12,7 +13,8 @@ def populate():
 
 def add_user(username, password, role, active, git):
     today = utc.localize(datetime.now())
-    user = Users.objects.get_or_create(username=username, password=password, role=role, register_date=today, active=active, github_account=git)[0]
+    guid = uuid.uuid4()
+    user = Users.objects.get_or_create(guid = guid, username=username, password=password, role=role, register_date=today, active=active, github_account=git)[0]
     return user
 
 def add_friend(username1, username2, accept):
