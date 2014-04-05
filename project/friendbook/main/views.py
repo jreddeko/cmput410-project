@@ -41,15 +41,13 @@ def index(request):
             else:
                 return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
         else:
+            #guid = uuid.uuid4().int
             username = request.POST["username"]
             password = request.POST["password"]
             role = "Author"
             registerDate = datetime.now().date()
             active = 0
             github = request.POST["github"]
-            
-            if ((username == "") or (password == "")):
-                return render_to_response('main/index.html', {"signupError": "Error: one or more missing fields"}, context)
             
             try:
                 newUser = Users(username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
@@ -713,9 +711,50 @@ def friend (request, username, friend_id):
   else: 
     return HttpResponseNotAllowed
   
+@require_http_methods(["GET", "POST", "PUT", "DELETE"])
 @csrf_exempt
-def user(request, username):
+def user(request, userID):
   context=RequestContext(request)
+
+  if (request.method == "GET"):
+    if (len(Users.objects.filter(id = userID)) == 1):
+      #if the user exists, return their data
+      user = Users.objects.get(id = userID)
+      return HttpResponse(json.dumps({"id": userID, "username": user.username, "password": user.password, "role": user.role, "registerDate": str(user.register_date), "active": user.active, "github": user.github_account}))
+    else:
+      #if the user doesn't exist, return an error message
+      return HttpResponse(json.dumps({"error": "The requested user does not exist"}))
+  elif (request.method == "POST"):
+    return HttpResponse("POST: " + username + "\n")
+  elif (request.method == "PUT"):
+    data = json.loads(request.body)
+
+    if (len(Users.objects.filter(username = username)) == 1):
+      #if the user exists, update it
+      Users.objects.filter(username = username).update(password = data["password"], github_account = data["github"])
+    else:
+      #if the user doesn't exist, create it
+      password = data["password"]
+      role = "Author"
+      registerDate = datetime.now().date()
+      active = 0
+      github = data["github"]
+            
+      newUser = Users(username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
+      newUser.save()
+
+    user = Users.objects.get(username = username)
+    return HttpResponse(json.dumps({"id": user.id, "username": username, "password": user.password, "role": user.role, "registerDate": str(user.register_date), "active": user.active, "github": user.github_account}))
+  else:
+    if (len(Users.objects.filter(username = username)) == 1):
+      #if the user exists, delete it
+      Users.objects.get(username = username).delete()
+      return HttpResponse(json.dumps({"message": "The user has been successfully deleted"}))
+    else:
+      #if the user doesn't exist, return an error message
+      return HttpResponse(json.dumps({"error": "The requested user does not exist"}))
+
+'''
   if request.method == 'GET':
     user = Users.objects.get(username=username)
     reponse_data = serializers.serialize('json', [user])
@@ -767,6 +806,7 @@ def user(request, username):
     return HttpResponse("User Deleted\n")
   else: 
     return HttpResponseNotAllowed
+'''
 
 def doSomething():
   return null
