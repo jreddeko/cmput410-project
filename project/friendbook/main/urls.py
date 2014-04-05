@@ -1,4 +1,6 @@
 from django.conf.urls import patterns, include, url
+from django.conf import settings
+from django.conf.urls.static import static
 from main import views
 from django.contrib import admin
 admin.autodiscover()
@@ -23,7 +25,7 @@ urlpatterns = patterns('',
     url(r'^wall/$', views.wall, name='wall'),
     url(r'^account/$', views.account, name='account'),
     url(r'^author/posts/$', views.posts, name='posts'),
-    url(r'^author/(?P<username>\w+)/$', views.user, name='user'),
+    url(r'^author/(?P<userID>[\w\-]+)$', views.user, name='user'),
     url(r'^posts/$', views.pubposts, name='pubposts'),
     url(r'^author/(?P<username>\w+)/posts/$', views.authorposts, name='authorposts'),
     url(r'^posts/(?P<post_id>\w+)/$', views.post, name='post'),
@@ -31,6 +33,10 @@ urlpatterns = patterns('',
     url(r'^author/(?P<username>\w+)/friends/$', views.friends, name='friends'),
     url(r'^author/(?P<username>\w+)/friends/(?P<friend_id>\w+)/$', views.friend, name='friend'),
     url(r'^author/(?P<username>\w+)/images/$', views.images, name='images'),
-    url(r'^author/(?P<username>\w+)/images/(?P<image_id>\w+)/$', views.image, name='image'),
+    url(r'^images/$', views.images, name='images'),
     url(r'^admin/', include(admin.site.urls)),
+
+
 )
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
