@@ -34,6 +34,7 @@ def index(request):
                 if ((Users.objects.get(username = username, password = password)).active == 1):
                   request.session["loggedIn"] = True
                   request.session["username"] = username
+                  request.session["guid"] = Users.objects.get(username = username).guid
                 
                   return redirect("wall")
                 else:
@@ -41,7 +42,7 @@ def index(request):
             else:
                 return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
         else:
-            #guid = uuid.uuid4().int
+            guid = uuid.uuid4().int
             username = request.POST["username"]
             password = request.POST["password"]
             role = "Author"
@@ -50,7 +51,7 @@ def index(request):
             github = request.POST["github"]
             
             try:
-                newUser = Users(username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
+                newUser = Users(guid = guid, username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
                 newUser.save()
             except IntegrityError as e:
                 return render_to_response('main/index.html', {"signupError": "Error: username already exists"}, context)
@@ -60,15 +61,19 @@ def index(request):
 @require_http_methods(["GET", "POST"])
 def account(request):
   context = RequestContext(request)
-  username = request.session["username"]
+  guid = request.session["guid"]
   message = ""
+  error = ""
 
   if (request.method == "POST"):
-    Users.objects.filter(username = username).update(password = request.POST["password"], github_account = request.POST["github"])
-    message = "Account successfully updated"
+    if (len(Users.objects.exclude(guid = guid).filter(username = request.POST["username"])) == 0):
+      Users.objects.filter(guid = guid).update(username = request.POST["username"], password = request.POST["password"], github_account = request.POST["github"])
+      message = "Account successfully updated"
+    else:
+      error = "Username already exists"
 
-  user = Users.objects.get(username = username)
-  return render_to_response("main/account.html", {"password": user.password, "github": user.github_account, "message": message}, context)
+  user = Users.objects.get(guid = guid)
+  return render_to_response("main/account.html", {"username": user.username, "password": user.password, "github": user.github_account, "message": message, "error": error}, context)
 
 @require_http_methods(["GET"])
 def logout(request):
@@ -76,6 +81,7 @@ def logout(request):
 
   request.session["loggedIn"] = False
   request.session["username"] = ""
+  request.session["guid"] = ""
 
   return redirect("index")
   
