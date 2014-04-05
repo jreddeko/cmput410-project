@@ -18,7 +18,7 @@ class Users(models.Model):
     github_account = models.TextField(blank=True)
 
 class Posts(models.Model):
-    guid = models.IntegerField(primary_key=True)
+    guid = models.CharField(max_length=100, primary_key=True)
     title = models.CharField(max_length=30)
     source = models.URLField(blank=True)
     origin = models.URLField(blank=True)
@@ -32,7 +32,7 @@ class Posts(models.Model):
 
 
 class Comment(models.Model):
-    guid = models.IntegerField(primary_key=True)
+    guid = models.CharField(max_length=100,primary_key=True)
     postguid = models.ForeignKey(Posts)
     author = models.ForeignKey(Users)
     comment = models.TextField()
@@ -44,11 +44,22 @@ class Friends(models.Model):
     accept = models.BooleanField()
     server = models.TextField(blank=True)
 
+class Image(models.Model):
+    user = models.ForeignKey(Users)
+    image = models.ImageField(upload_to='.')
+    name = models.CharField(max_length=30)
+
+class ImageForm(ModelForm):
+    class Meta:
+        model = Image
+        exclude = {'user',}
+
 class PostsForm(ModelForm):
     class Meta:
         model = Posts
         fields = ['title','category','description','content','permission']
         exclude = ("author",)
+
     def __init__(self, *args, **kwargs):
         super(PostsForm, self).__init__(*args, **kwargs)
         self.fields['permission'].widget.attrs.update({'class':'col-sm-9 form-control','style':"width: 90%;"})
