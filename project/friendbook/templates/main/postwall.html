@@ -46,6 +46,7 @@
                             <li><a href="{% url 'newpost' %}">Create Post</a></li>
                             <li><a href="{% url 'search_users' %}">Search Users</a></li>
                             <li><a href="{% url 'account' %}">Account Management</a></li>
+                            <li><a href="{% url 'images' %}">View Images</a></li>
                             <li><a href="{% url 'logout' %}">Logout</a></li>
                         </ul>
                     </div>
@@ -88,6 +89,7 @@
             </div>
             <!--If it is not a github event, it is a post-->
             {% else %}
+
             <div id="post_wall-{{ post.guid }}" class="col-sm-8 blog-main">
                 <div id="post-{{ post.guid }}"class="blog-post">
                     <button id="post_delete-{{ post.guid }}" type="button" class="btn btn-primary btn-lg post_buttons">
@@ -111,6 +113,7 @@
                     </p>
                 </div>
                 {% endif %}
+
                 {% if post.source %}
                 <div id="post_source-{{ post.guid }}">
                     <p class="blog-post-meta" style="margin-bottom:2px;">Source: <span>{{ post.source }}<span></p>
@@ -121,11 +124,16 @@
                     <p class="blog-post-meta">Origin: <span>{{ post.origin }}<span></p>
                 </div>
                 {% endif %}
+
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" />
+                {% endif %}
                 {% if post.description %}
                 <div id="post_description-{{ post.guid }}">
                     <p class="blog-post-meta">Description of the Post: <span>{{ post.description }}</span></p>
                 </div>
                 {% endif %}
+
                 <div id="post_content-{{ post.guid }}" class="blog_content">
                     {{ post.content | safe }}
                 </div>

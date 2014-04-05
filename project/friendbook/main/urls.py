@@ -1,4 +1,6 @@
 from django.conf.urls import patterns, include, url
+from django.conf import settings
+from django.conf.urls.static import static
 from main import views
 from django.contrib import admin
 admin.autodiscover()
@@ -31,6 +33,10 @@ urlpatterns = patterns('',
     url(r'^author/(?P<username>\w+)/friends/$', views.friends, name='friends'),
     url(r'^author/(?P<username>\w+)/friends/(?P<friend_id>\w+)/$', views.friend, name='friend'),
     url(r'^author/(?P<username>\w+)/images/$', views.images, name='images'),
-    url(r'^author/(?P<username>\w+)/images/(?P<image_id>\w+)/$', views.image, name='image'),
+    url(r'^images/$', views.images, name='images'),
     url(r'^admin/', include(admin.site.urls)),
+
+
 )
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

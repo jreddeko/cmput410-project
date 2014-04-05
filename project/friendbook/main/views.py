@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.shortcuts import redirect
-from django.http import HttpResponse,StreamingHttpResponse
+from django.http import HttpResponse,StreamingHttpResponse, HttpResponseRedirect
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers.json import DjangoJSONEncoder
@@ -11,7 +11,8 @@ from django.db import IntegrityError
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
-from main.models import Users, Posts, Comment , Friends, PostsForm, CommentForm
+from main.models import Users, Posts, Comment , Friends, PostsForm, CommentForm, Image, ImageForm
+from django.core.urlresolvers import reverse
 
 import json
 import time
@@ -122,7 +123,7 @@ def wall(request):
     me = request.session["username"]
     userInfo = Users.objects.get(username=me)
     if request.method == "POST":
-        f = PostsForm(request.POST)
+        f = PostsForm(request.POST,request.FILES)
         if f.is_valid():
             new_post = f.save(commit=False)
             new_post.author = userInfo
@@ -610,11 +611,27 @@ def post(request, username, post_id):
     else:
         return HttpResponseNotAllowed
 
-def images (request, username):
-  if request.method == 'GET':
-    return HttpResponse("all images from " + username)
-  else: 
-    return HttpResponseNotAllowed
+def images (request):
+    context = RequestContext(request)
+    if request.method == 'GET':
+        form = ImageForm()
+        images = Image.objects.filter(user=Users.objects.get(username=request.session["username"]))
+        return render_to_response('main/images.html', {'images':images,'form':form}, context)
+    elif request.method == 'POST':
+        form = ImageForm(request.POST, request.FILES)
+        
+        if form.is_valid():
+            image_up = form.save(commit=False)
+            print user
+            image_up.user = Users.objects.get(username=request.session["username"])
+            image_up.save()
+            return HttpResponseRedirect('/images/')
+            
+        else:   
+            form = form.errors
+            return HttpResponseRedirect('/images/')
+    else:
+        return HttpResponseNotAllowed
 
 def image (request,username,image_id):
   if request.method == 'GET':

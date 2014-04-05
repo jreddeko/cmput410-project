@@ -46,8 +46,8 @@ class Friends(models.Model):
 
 class Image(models.Model):
     user = models.ForeignKey(Users)
-    image = models.ImageField(upload_to='.')
     name = models.CharField(max_length=30)
+    image = models.ImageField(upload_to='images')
 
 class ImageForm(ModelForm):
     class Meta:
