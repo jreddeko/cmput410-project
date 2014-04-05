@@ -144,13 +144,16 @@ def wall(request):
     serverOnlyPosts = getServerOnlyPosts(me, currentHost, friend_check)
     friendsPosts = getAllFriendPosts(me, currentHost, friend_check)
     
+    print authorData
+    print publicPosts
+    print serverOnlyPosts
+    print friendsPosts
+    
     mergedList = githubActivity + authorData + publicPosts + serverOnlyPosts + friendsPosts
     mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
 
-    comments = Comment.objects.filter(postguid__in=authorposts.values_list("guid"))
-
     return render_to_response('main/postwall.html', 
-        {"user_id": userInfo.id, "username": request.session['username'], "posts": mergedList, 'comments':comments, 'comment_form':CommentForm(),'friends': friend_check}, context)
+        {"user_id": userInfo.id, "username": request.session['username'], "posts": mergedList, 'comment_form':CommentForm(),'friends': friend_check}, context)
 
 def getAllFriendPosts(user, host, friendlist):
     postList = []
@@ -247,8 +250,12 @@ def comments(request,username,post_id):
                 post = Posts.objects.get(guid=post_id)
                 comment = Comment.objects.create(postguid = post, author = user, comment = form['comment'].value())
                 return redirect("wall")
-
-    return None
+    elif request.method == "GET":
+        currentHost = request.get_host()
+        post = Posts.objects.get(guid=post_id)
+        comment = Comment.objects.filter(postguid=post)
+        jsonResult = comment2Json(currentHost, comment)
+        return HttpResponse(json.loads(json.dumps(json.dumps(jsonResult))), content_type="application/json")
 
 '''
     RESTful API for Currently Authenticated user's posts
@@ -264,7 +271,6 @@ def posts(request):
     context = RequestContext(request)
     currentHost = request.get_host()
     if request.method == 'GET':
-        #need to add permission stuff when friends are implemented
         userInfo = Users.objects.get(username=username)
         authorposts = Posts.objects.filter(author=userInfo)
         publicPosts = Posts.objects.filter(permission="PUBLIC").exclude(author=userInfo)
@@ -282,127 +288,8 @@ def posts(request):
         mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
         for listitem in mergedList:
             postList["posts"].append(listitem)
-        
-        #jsonResult = post2Json(currentHost, posts, "posts")
-        # must have content_type parameter to not include HTTPResponse
-        # values included in the JSON result to be passed to the AJAX call
-        #return jsonResult
+    
         return HttpResponse(json.loads(json.dumps(json.dumps(postList))), content_type="application/json")
-    '''
-    elif request.method == 'POST':
-        print "restful POST requested"
-        try:
-            userInfo = Users.objects.get(username=username)
-        except ObjectDoesNotExist:
-            return HttpResponse("<p>Username specified does not existin the databasee</p>\r\n", content_type="text/html")
-        postList = json.loads(request.body).get("posts")
-
-        errorMessage = []
-        for post in postList:
-            postId = post["guid"]
-            try:
-                old_post = Posts.objects.get(id=postId)
-                title = post["title"]
-                origin = post["origin"]
-                source = post["source"]
-                description = post["description"]
-                contentType = post["content_type"]
-                content = post["content"]
-                categories = ",".join(post["categories"])
-                pubDate = datetime.now().date()
-                permission = post["visibility"]
-                visibility = post["visibility"]
-                
-                old_post.title = title
-                old_post.permission = permission
-                old_post.source = source
-                old_post.origin = origin
-                old_post.category = categories
-                old_post.description = description
-                old_post.content_type = "text/html"
-                old_post.content = content
-                old_post.author = userInfo
-                old_post.pub_date = datetime.now().date()
-                old_post.visibility = permission
-                old_post.save()
-            except ObjectDoesNotExist:
-                title = post["title"]
-                origin = post["origin"]
-                source = post["source"]
-                description = post["description"]
-                contentType = post["content_type"]
-                content = post["content"]
-                categories = ",".join(post["categories"])
-                pubDate = datetime.now().date()
-                permission = post["visibility"]
-                visibility = post["visibility"]
-                
-                post = Posts(title = title, source=source, origin=origin, category=categories, description=description, content_type=contentType, content=content, author=userInfo, permission=permission, pub_date=pubDate, visibility = permission)
-                post.save()
-
-        return HttpResponse("<p>The posts have been created/modified successfully.</p>", content_type="text/html")
-    elif request.method == 'PUT':
-        try:
-            userInfo = Users.objects.get(username=username)
-        except ObjectDoesNotExist:
-            return HttpResponse("<p>Username specified does not existin the databasee</p>\r\n", content_type="text/html")
-        postList = json.loads(request.body).get("posts")
-        errorMessage = []
-        for post in postList:
-            postId = post["guid"]
-            try:
-                old_post = Posts.objects.get(id=postId)
-                title = post["title"]
-                origin = post["origin"]
-                source = post["source"]
-                description = post["description"]
-                contentType = post["content_type"]
-                content = post["content"]
-                categories = ",".join(post["categories"])
-                pubDate = datetime.now().date()
-                permission = post["visibility"]
-                visibility = post["visibility"]
-                
-                old_post.title = title
-                old_post.permission = permission
-                old_post.source = source
-                old_post.origin = origin
-                old_post.category = categories
-                old_post.description = description
-                old_post.content_type = "text/html"
-                old_post.content = content
-                old_post.author = userInfo
-                old_post.pub_date = datetime.now().date()
-                old_post.visibility = permission
-                
-                old_post.save()
-            except ObjectDoesNotExist:
-                errorMessage.append("<p>The specified post with ID "+str(post["guid"])+" does not exsit to be modified.</p>\r\n")
-
-        errors = ",".join(errorMessage)
-        return HttpResponse(errors, content_type="text/html")
-
-        #create post in db
-    elif request.method == 'DELETE':
-        #only system admin and the author can do this!
-        #check if the user is admin/author of post
-        try:
-            userInfo = Users.objects.get(username=username)
-        except ObjectDoesNotExist:
-            return HttpResponse("<p>Username specified does not existin the databasee</p>\r\n", content_type="text/html")
-
-        postInfo = Posts.objects.filter(author=userInfo)
-        
-        #server admins and the author has the permissions to delete the post
-        for post in postInfo:
-            if userInfo.role == "admin" or post.author.id == userInfo.id:
-                    post.delete()
-            else:
-                return HttpResponse("<p>You do not have permission to delete these posts.</p>", content_type="text/html")
-        return HttpResponse("<p>Posts have been deleted.</p>", content_type="text/html")
-    else:
-        return HttpResponseNotAllowed
-        '''
 
 '''
     RESTFul for http://localhost:8000/posts
@@ -416,39 +303,46 @@ def pubposts(request):
         publicPosts = post2Json(currentHost, publicPosts)
         return HttpResponse(json.loads(json.dumps(json.dumps(publicPosts))), content_type="application/json")
 
-
-def authorposts(reqeust):
-    print "authorposts"
+'''
+    RESTFul for http://localhost:8000/author/<author_username>/posts
+    
+    GET all public posts within the server.
+'''
+def authorposts(request, username):
+    if request.method == "GET":
+        currentHost = request.get_host()
+        userInfo = Users.objects.get(username=username)
+        publicPosts = Posts.objects.filter(permission="PUBLIC", author=userInfo)
+        friendPosts = Posts.objects.filter(permission="FRIENDS", author=userInfo)
+        serveronlyPosts = Posts.objects.filter(permission="SERVERONLY", author=userInfo)
+        
+        publicPosts = post2Json(currentHost, publicPosts).get("posts")
+        friendPosts = post2Json(currentHost, friendPosts).get("posts")
+        serveronlyPosts = post2Json(currentHost, serveronlyPosts).get("posts")
+        
+        postList = dict()
+        postList["posts"] = []
+        mergedList = publicPosts + serveronlyPosts + friendPosts
+        mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
+        for listitem in mergedList:
+            postList["posts"].append(listitem)
+        
+        return HttpResponse(json.loads(json.dumps(json.dumps(postList))), content_type="application/json")
 
 
 '''
-This method is called by posts to format the JSON as to appropriate format to be inserted into the database.
-The jsonObject param is the JSON object that is shown in example_article.json in project webisite:
-https://github.com/abramhindle/CMPUT404-project-socialdistribution/blob/master/example-article.json
-
-It takes the JSON object and create and create a properly formatted JSON object.
-
-@param querySet         django QuerySet object that is returned from database query to
-posts table
-@return JSON object to be sent as a response to an AJAX call
-'''
-#def json2Post(host, userData, jsonObject):
-
-'''
-This method is called by posts to format the query result as desired JSON format
+This method is called by posts to format the posts query result as desired JSON format
 as ones shown in example_article.json in project website:
 https://github.com/abramhindle/CMPUT404-project-socialdistribution/blob/master/example-article.json
 
 It takes the database query result and pases the QuerySet and create a properly formatted JSON object.
 
-@param querySet         django QuerySet object that is returned from database query to 
-                        posts table
+@param host             current host address
+@param querySet         django QuerySet object that is returned from database query to  posts table
 @return JSON object to be sent as a response to an AJAX call
     
 '''
 def post2Json(host, queryset):
-    # TODO Date format is currently wrong! May have to change
-    # the format when it's being inserted into DB
     post_lists = dict()
     querylist = []
     for queryResult in queryset:
@@ -471,16 +365,59 @@ def post2Json(host, queryset):
         post["author"] = user
         categories = queryResult.category.split(",")
         post["categories"] = categories
-        comments = {}
+        #need to make a function to get all comments of this post
+        comments = []
+        
+        getCommentJson = urllib2.urlopen("http://"+host+"/author/"+queryResult.author.username+"/posts/"+str(queryResult.guid)+"/comments/").read()
+        
+        commentjson = json.loads(getCommentJson)
+        for comment in commentjson:
+            comments.append(comment)
+        
         post["comments"] = comments
         post["pubDate"] = queryResult.pubdate
         #should be SHA1 or UUID encrypted?
         post["guid"] = queryResult.guid
-        #post["visibility"] = queryResult.visibility
+        post["visibility"] = queryResult.permission
         querylist.append(post)
     post_lists["posts"] = querylist
     
     return json.loads(json.dumps(post_lists, default=date_handler))
+
+'''
+    This method is called by comments to format the comments query result as desired JSON format
+    as ones shown in example_article.json in project website:
+    https://github.com/abramhindle/CMPUT404-project-socialdistribution/blob/master/example-article.json
+    
+    It takes the database query result and pases the QuerySet and create a properly formatted JSON object.
+    
+    @param host             current host address
+    @param querySet         django QuerySet object that is returned from database query to comments table
+    
+    @return JSON object to be sent as a response to an AJAX call
+'''
+def comment2Json(host, queryset):
+    comment_lists = dict()
+    querylist = []
+    for queryResult in queryset:
+        authorInfo = Users.objects.get(id=queryResult.author.id)
+        user = {}
+        user["id"] = authorInfo.id
+        # TODO change this when we are communicating with other servers
+        # they may have to specify their url?
+        user["host"] = host
+        user["displayname"] = authorInfo.username
+
+        comment = {}
+        comment["author"] = user
+        comment["comment"] = queryResult.comment
+        comment["pubDate"] = queryResult.pubDate
+        comment["guid"] = queryResult.guid
+
+        querylist.append(comment)
+
+    return json.loads(json.dumps(querylist, default=date_handler))
+
 
 '''
 date_handler function changes the date format to the one

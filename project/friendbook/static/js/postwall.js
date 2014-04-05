@@ -69,6 +69,24 @@ $(document).ready(function (){
           });
     });
                   
+    $(".friend_lists").click(function(e){
+        e.preventDefault;
+        var username = $(this).text().trim();
+        $.ajax({
+              url: "http://"+window.location.host+"/author/"+username+"/posts/",
+              type: "GET",
+              success: function(data) {
+                  displayJsonData(data);
+              },
+              error: function(jqXHR, textStatus, errorThrown) {
+                  console.log(jqXHR);
+                  console.log(textStatus);
+                  console.log(errorThrown);
+              }
+              
+        });
+    });
+                  
 });
 
 /**
@@ -79,85 +97,66 @@ $(document).ready(function (){
  */
 function displayJsonData(json)
 {
+    console.log(json);
     var posts = json["posts"];
+    $(".blog-main").remove();
     
     for(var i=0; i < posts.length; i++)
     {
-        // do this by components (b/c need to check for empty data...)
-        /*var html = $('<div id="post_wall-'+posts[i]["guid"]+'" class="col-sm-8 blog-main">'+
-                     '<div id="post-'+posts[i]["guid"]+'"class="blog-post">'+
-                     '<button id="post_delete-'+posts[i]["guid"]+'" type="button" class="btn btn-primary btn-lg post_buttons">'+
-                     '<span class="glyphicon glyphicon-trash"></span> Delete'+
-                     '</button>'+
-                     '<button id="post_edit-'+posts[i]["guid"]+'" type="button" class="btn btn-primary btn-lg post_buttons">'+
-                     '<span class="glyphicon glyphicon-pencil"></span> Edit'+
-                     '</button>'+
-                     '<h2 class="blog-post-title">'+ post +'</h2>'+
-                     {% if post.categories %}
-                     <div id="post_category-'+posts[i]["guid"]+'">
-                     <p class="blog-post-meta">Categories: <span>
-                     {% for cat in post.categories %}
-                     {% if not forloop.last %}
-                     {{ cat }},
-                     {% else %}
-                     {{ cat }}
-                     {% endif %}
-                     {% endfor %}
-                     </span>
-                     </p>
-                     </div>
-                     {% endif %}
-                     {% if post.source %}
-                     <div id="post_source-'+posts[i]["guid"]+'">
-                     <p class="blog-post-meta" style="margin-bottom:2px;">Source: <span>{{ post.source }}<span></p>
-                     </div>
-                     {% endif %}
-                     {% if post.origin %}
-                     <div id="post_origin-'+posts[i]["guid"]+'">
-                     <p class="blog-post-meta">Origin: <span>{{ post.origin }}<span></p>
-                     </div>
-                     {% endif %}
-                     {% if post.description %}
-                     <div id="post_description-'+posts[i]["guid"]+'">
-                     <p class="blog-post-meta">Description of the Post: <span>{{ post.description }}</span></p>
-                     </div>
-                     {% endif %}
-                     <div id="post_content-'+posts[i]["guid"]+'" class="blog_content">
-                     {{ post.content | safe }}
-                     </div>
-                     <div id="post_author_info-'+posts[i]["guid"]+'">
-                     <p class="blog-post-meta">Posted on {{post.pubDate}} by <a href="#">{{ post.author.displayname }}</a></p>
-                     </div>
-                     <!-- hidden div where it will be storing the permissions value from the DB. Needed when editting the post to load previous contents asynchronously -->
-                     <input id="post_permission-'+posts[i]["guid"]+'" type="hidden" value="{{ post.visibility }}"/>
-                     <div id="post_comment-'+posts[i]["guid"]+'" class="well">
-                     <h4> Comments </h4>
-                     
-                     {% for comment in comments %}
-                     {%  if comment.postguid.guid == post.guid %}
-                     
-                     <div id="post_comment-{{ comment.guid }}" class="post_comments">
-                     <p> {{ comment.comment }} </p>
-                     <p class="blog-post-meta">Commented by: {{ comment.author.username }}</p>
-                     </div>
-                     {% endif %}
-                     {% endfor %}
-                     </div>
-                     
-                     <div id="post_comment-'+posts[i]["guid"]+'" class="well">
-                     <div class="form-group">
-                     <form class="form-horizontal" action="/author/{{username}}/posts/'+posts[i]["guid"]+'/comments/" method="post">{% csrf_token %}
-                     <label for="id_comment" class="col-sm-3">Your comment:</label>
-                     {{ comment_form.comment }}
-                     <input type="submit" name="comment_submit_form" class="btn btn-primary" value="Submit" />
-                     
-                     </form>
-                     </div>
-                     </div><!-- end of comments -->
-                     
-                     </div><!-- end of post -->
-                     
-                     </div><!-- /.blog-main -->')*/
+        var postid = posts[i]["guid"];
+        var postmain = $("<div id='post_wall-"+postid+"' class='col-sm-8 blog-main'></div>");
+        var postdiv = $("<div id='post-"+postid+"' class='blog-post'></div>");
+        
+        var deleteButton = $('<button id="post_delete-'+postid+'" type="button" class="btn btn-primary btn-lg post_buttons"><span class="glyphicon glyphicon-trash"></span> Delete</button>');
+        var editButton = $('<button id="post_edit-'+posts[i]["guid"]+'" type="button" class="btn btn-primary btn-lg post_buttons"><span class="glyphicon glyphicon-pencil"></span> Edit</button>');
+        var header = $('<h2 class="blog-post-title">'+ posts[i]["title"] +'</h2>');
+        
+        var categories = posts[i]["categories"];
+        for(var cat_ind = 1; cat_ind < posts[i]["categories"].length; cat_ind++)
+        {
+            categories += ","+ posts[i]["categories"][cat_ind];
+        }
+        var cat_div = $('<div id="post_category-'+postid+'"><p class="blog-post-meta">Categories: <span>'+categories+'</span></p></div>');
+        var source = $('<div id="post_source-'+postid+'"><p class="blog-post-meta" style="margin-bottom:2px;">Source: <span>'+posts[i]["source"]+'<span></p></div>');
+        var origin = $('<div id="post_origin-'+postid+'"><p class="blog-post-meta">Origin: <span>'+posts[i]["origin"]+'<span></p></div>');
+        var description = $('<div id="post_description-'+postid+'"><p class="blog-post-meta">Description of the Post: <span>'+posts[i]["description"]+'</span></p></div>');
+        var content = $('<div id="post_content-'+postid+'" class="blog_content">'+posts[i]["content"]+'</div>');
+        var authorinfo = $('<div id="post_author_info-'+postid+'"><p class="blog-post-meta">Posted on '+posts[i]["pubDate"]+' by <a href="#">'+posts[i]["author"].displayname+'</a></p></div>');
+        var hiddenPermission = $('<input id="post_permission-'+postid+'" type="hidden" value="'+posts[i]["visibility"]+'"/>');
+        var commentContainer = $('<div id="post_comment-'+postid+'" class="well"></div>');
+        var commentHeader = $('<h4> Comments </h4>');
+        // need code to process comments when the view post2json has comments processed
+        /*
+         for(var comment_ind = 0; comment_ind < posts[i]["comments"].length; comment_ind++)
+         {
+         var comment = posts[i]["comments"][comment_ind];
+         var commentDiv = $('<div id="post_comment-'+comment.guid+'" class="post_comments"><p> '+comment.comment+' </p><p class="blog-post-meta">Commented by: {{ comment.author.username }}</p></div>')
+         }*/
+        var commentForm = $('<div id="post_commentform--'+postid+'" class="well">'+
+                            '<div class="form-group">'+
+                            '<form class="form-horizontal" action="/author/{{username}}/posts/'+postid+'/comments/" method="post">'+
+                            '<label for="id_comment" class="col-sm-3">Your comment:</label>'+
+                            '<textarea cols="40" id="id_comment" name="comment" rows="10"></textarea>'+
+                            '<input type="submit" name="comment_submit_form" class="btn btn-primary" value="Submit" /></form></div></div>');
+        
+        $(commentContainer).append(commentHeader);
+        
+        $(postdiv).append(deleteButton);
+        $(postdiv).append(editButton);
+        $(postdiv).append(header);
+        $(postdiv).append(cat_div);
+        $(postdiv).append(source);
+        $(postdiv).append(origin);
+        $(postdiv).append(description);
+        $(postdiv).append(content);
+        $(postdiv).append(authorinfo);
+        $(postdiv).append(hiddenPermission);
+        $(postdiv).append(commentContainer);
+        $(postdiv).append(commentForm);
+        
+        $(postmain).append(postdiv);
+        
+        $("#post_wall_container").append(postmain);
     }
 }
 
