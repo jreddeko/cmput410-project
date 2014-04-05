@@ -59,7 +59,7 @@
             <p class="lead blog-description">Welcome to Social Media!</p>
         </div>
         
-        <div class="row">
+        <div id="post_wall_container" class="row">
             <div class="col-sm-3 col-sm-offset-1 blog-sidebar list_friends">
                 <div class="sidebar-module sidebar-module-inset">
                     <h2>View Posts From:</h2>
@@ -135,19 +135,16 @@
                 <input id="post_permission-{{ post.guid }}" type="hidden" value="{{ post.visibility }}"/>
                 <div id="post_comment-{{ post.guid }}" class="well">
                     <h4> Comments </h4>
-
-                    {% for comment in comments %}
-                    {%  if comment.postguid.guid == post.guid %}
+                    {% for comment in post.comments %}
                     
                     <div id="post_comment-{{ comment.guid }}" class="post_comments">
                         <p> {{ comment.comment }} </p>
-                        <p class="blog-post-meta">Commented by: {{ comment.author.username }}</p>
+                        <p class="blog-post-meta">Commented by: {{ comment.author.displayname }}</p>
                     </div>
-                    {% endif %}
                     {% endfor %}
                 </div>
 
-                <div id="post_comment-{{ post.guid }}" class="well">
+                <div id="post_commentform-{{ post.guid }}" class="well">
                     <div class="form-group">
                         <form class="form-horizontal" action="/author/{{username}}/posts/{{post.guid}}/comments/" method="post">{% csrf_token %}
                             <label for="id_comment" class="col-sm-3">Your comment:</label>
