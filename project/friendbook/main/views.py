@@ -59,7 +59,18 @@ def index(request):
             
             return render_to_response('main/index.html', {"signupSuccess": "Successfully created an account! Before you can login, the website admin has to verify who you are"}, context)
 
+@require_http_methods(["GET", "POST"])
+def account(request):
+  context = RequestContext(request)
+  username = request.session["username"]
+  message = ""
 
+  if (request.method == "POST"):
+    Users.objects.filter(username = username).update(password = request.POST["password"], github_account = request.POST["github"])
+    message = "Account successfully updated"
+
+  user = Users.objects.get(username = username)
+  return render_to_response("main/account.html", {"password": user.password, "github": user.github_account, "message": message}, context)
 
 @require_http_methods(["GET"])
 def logout(request):
