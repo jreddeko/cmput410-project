@@ -654,10 +654,10 @@ def user(request, userID):
   context=RequestContext(request)
 
   if (request.method == "GET"):
-    if (len(Users.objects.filter(id = userID)) == 1):
+    if (len(Users.objects.filter(guid = userID)) == 1):
       #if the user exists, return their data
-      user = Users.objects.get(id = userID)
-      return HttpResponse(json.dumps({"id": userID, "username": user.username, "password": user.password, "role": user.role, "registerDate": str(user.register_date), "active": user.active, "github": user.github_account}))
+      user = Users.objects.get(guid = userID)
+      return HttpResponse(json.dumps({"guid": userID, "username": user.username, "password": user.password, "role": user.role, "registerDate": str(user.register_date), "active": user.active, "github": user.github_account}))
     else:
       #if the user doesn't exist, return an error message
       return HttpResponse(json.dumps({"error": "The requested user does not exist"}))
