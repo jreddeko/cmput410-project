@@ -160,7 +160,7 @@ def wall(request):
     mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
 
     return render_to_response('main/postwall.html', 
-        {"user_id": userInfo.id, "username": request.session['username'], "posts": mergedList, 'comment_form':CommentForm(),'friends': friend_check}, context)
+        {"user_id": userInfo.guid, "username": request.session['username'], "posts": mergedList, 'comment_form':CommentForm(),'friends': friend_check}, context)
 
 def getAllFriendPosts(user, host, friendlist):
     postList = []
