@@ -52,7 +52,114 @@ $(document).ready(function (){
         }
     });
                   
+    $("#public_posts").click(function(e){
+        e.preventDefault;
+        $.ajax({
+              url: "http://"+window.location.host+"/posts/",
+              type: "GET",
+              success: function(data) {
+                  displayJsonData(data);
+              },
+              error: function(jqXHR, textStatus, errorThrown) {
+                  console.log(jqXHR);
+                  console.log(textStatus);
+                  console.log(errorThrown);
+              }
+              
+          });
+    });
+                  
 });
+
+/**
+ * Takes the JSON data returned from the GET requests and
+ * displays them in the post wall main page.
+ *
+ * @param json          JSON data from the AJAX calls
+ */
+function displayJsonData(json)
+{
+    var posts = json["posts"];
+    
+    for(var i=0; i < posts.length; i++)
+    {
+        // do this by components (b/c need to check for empty data...)
+        /*var html = $('<div id="post_wall-'+posts[i]["guid"]+'" class="col-sm-8 blog-main">'+
+                     '<div id="post-'+posts[i]["guid"]+'"class="blog-post">'+
+                     '<button id="post_delete-'+posts[i]["guid"]+'" type="button" class="btn btn-primary btn-lg post_buttons">'+
+                     '<span class="glyphicon glyphicon-trash"></span> Delete'+
+                     '</button>'+
+                     '<button id="post_edit-'+posts[i]["guid"]+'" type="button" class="btn btn-primary btn-lg post_buttons">'+
+                     '<span class="glyphicon glyphicon-pencil"></span> Edit'+
+                     '</button>'+
+                     '<h2 class="blog-post-title">'+ post +'</h2>'+
+                     {% if post.categories %}
+                     <div id="post_category-'+posts[i]["guid"]+'">
+                     <p class="blog-post-meta">Categories: <span>
+                     {% for cat in post.categories %}
+                     {% if not forloop.last %}
+                     {{ cat }},
+                     {% else %}
+                     {{ cat }}
+                     {% endif %}
+                     {% endfor %}
+                     </span>
+                     </p>
+                     </div>
+                     {% endif %}
+                     {% if post.source %}
+                     <div id="post_source-'+posts[i]["guid"]+'">
+                     <p class="blog-post-meta" style="margin-bottom:2px;">Source: <span>{{ post.source }}<span></p>
+                     </div>
+                     {% endif %}
+                     {% if post.origin %}
+                     <div id="post_origin-'+posts[i]["guid"]+'">
+                     <p class="blog-post-meta">Origin: <span>{{ post.origin }}<span></p>
+                     </div>
+                     {% endif %}
+                     {% if post.description %}
+                     <div id="post_description-'+posts[i]["guid"]+'">
+                     <p class="blog-post-meta">Description of the Post: <span>{{ post.description }}</span></p>
+                     </div>
+                     {% endif %}
+                     <div id="post_content-'+posts[i]["guid"]+'" class="blog_content">
+                     {{ post.content | safe }}
+                     </div>
+                     <div id="post_author_info-'+posts[i]["guid"]+'">
+                     <p class="blog-post-meta">Posted on {{post.pubDate}} by <a href="#">{{ post.author.displayname }}</a></p>
+                     </div>
+                     <!-- hidden div where it will be storing the permissions value from the DB. Needed when editting the post to load previous contents asynchronously -->
+                     <input id="post_permission-'+posts[i]["guid"]+'" type="hidden" value="{{ post.visibility }}"/>
+                     <div id="post_comment-'+posts[i]["guid"]+'" class="well">
+                     <h4> Comments </h4>
+                     
+                     {% for comment in comments %}
+                     {%  if comment.postguid.guid == post.guid %}
+                     
+                     <div id="post_comment-{{ comment.guid }}" class="post_comments">
+                     <p> {{ comment.comment }} </p>
+                     <p class="blog-post-meta">Commented by: {{ comment.author.username }}</p>
+                     </div>
+                     {% endif %}
+                     {% endfor %}
+                     </div>
+                     
+                     <div id="post_comment-'+posts[i]["guid"]+'" class="well">
+                     <div class="form-group">
+                     <form class="form-horizontal" action="/author/{{username}}/posts/'+posts[i]["guid"]+'/comments/" method="post">{% csrf_token %}
+                     <label for="id_comment" class="col-sm-3">Your comment:</label>
+                     {{ comment_form.comment }}
+                     <input type="submit" name="comment_submit_form" class="btn btn-primary" value="Submit" />
+                     
+                     </form>
+                     </div>
+                     </div><!-- end of comments -->
+                     
+                     </div><!-- end of post -->
+                     
+                     </div><!-- /.blog-main -->')*/
+    }
+}
 
 /**
  *  This javascript method is called when the delete button is triggered

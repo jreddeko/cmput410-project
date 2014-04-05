@@ -17,6 +17,7 @@ import json
 import time
 from datetime import datetime
 import urllib2
+import uuid
 
 @require_http_methods(["GET", "POST"])
 def index(request):
@@ -106,12 +107,18 @@ body and inserted into the main_posts database table.
 @require_http_methods(["GET", "POST"])
 def wall(request):
     context = RequestContext(request)
-    userInfo = Users.objects.get(username=request.session["username"])
+    currentHost = request.get_host()
+    me = request.session["username"]
+    userInfo = Users.objects.get(username=me)
     if request.method == "POST":
         f = PostsForm(request.POST)
         if f.is_valid():
             new_post = f.save(commit=False)
             new_post.author = userInfo
+            new_post.source = currentHost
+            new_post.origin = currentHost
+            #need the db guid field to be string
+            #new_post.guid = uuid.uuid4().int
             new_post.save()
         else:
             print "invalid form"
@@ -119,27 +126,49 @@ def wall(request):
     githubActivity = getGitHubEvents(userInfo.github_account)
     authorposts = Posts.objects.filter(author=userInfo)
     publicPosts = Posts.objects.filter(permission="PUBLIC").exclude(author=userInfo)
-    currentHost = request.get_host()
+    
+    friends = list(Friends.objects.all())
+    friend_check = [x.username2 for x in friends if (x.username1 == me and x.accept== 1)] + [x.username1 for x in friends if (x.username2== me and x.accept== 1)]
 
-    authorData = post2Json(currentHost, authorposts, '').get("posts")
-    publicPosts = post2Json(currentHost, publicPosts, '').get("posts")
-    mergedList = githubActivity + authorData + publicPosts
+    authorData = post2Json(currentHost, authorposts).get("posts")
+    publicPosts = post2Json(currentHost, publicPosts).get("posts")
+    serverOnlyPosts = getServerOnlyPosts(me, currentHost, friend_check)
+    friendsPosts = getAllFriendPosts(me, currentHost, friend_check)
+    
+    mergedList = githubActivity + authorData + publicPosts + serverOnlyPosts + friendsPosts
     mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
 
     comments = Comment.objects.filter(postguid__in=authorposts.values_list("guid"))
-    me = request.session["username"]
-    friends = list(Friends.objects.all())
-    friend_check = [x.username2 for x in friends if (x.username1 == me and x.accept== 1)] + [x.username1 for x in friends if (x.username2== me and x.accept== 1)]
+
     return render_to_response('main/postwall.html', 
         {"user_id": userInfo.id, "username": request.session['username'], "posts": mergedList, 'comments':comments, 'comment_form':CommentForm(),'friends': friend_check}, context)
 
-# for above method to grab all posts from friends. (Need to watch out for having duplicate posts!
-#def getFriendsPosts(friendObj):
-#   friendposts = {}
-#   for result in friendObj:
-#       allPosts = Posts.objects.filter(author=result)
-#posts = allPosts.exclude(visibility = "public").order_by("-pub_date")
-#friendposts[] = posts
+def getAllFriendPosts(user, host, friendlist):
+    postList = []
+    for friend in friendlist:
+        friendInfo = Users.objects.get(username=friend)
+        friendServer = Friends.objects.filter(Q(username1=friend, username2=user)|Q(username2=friend, username1=user)).values("server")
+        friendPosts = Posts.objects.filter(permission="FRIENDS", author=friendInfo)
+        
+        if friendServer[0].get("server"):
+            friendPosts = post2Json(friendServer[0].get("server"), friendPosts).get("posts")
+            postList += friendPosts
+        else:
+            friendPosts = post2Json(str(host), friendPosts).get("posts")
+            postList += friendPosts
+    return postList
+
+def getServerOnlyPosts(user, host, friendlist):
+    postList = []
+    for friend in friendlist:
+        friendInfo = Users.objects.get(username=friend)
+        friendServer = Friends.objects.filter(Q(username1=friend, username2=user)|Q(username2=friend, username1=user)).values("server")
+        friendPosts = Posts.objects.filter(permission="SERVERONLY", author=friendInfo)
+        
+        if friendServer[0].get("server") == "":
+            friendPosts = post2Json(str(host), friendPosts).get("posts")
+            postList += friendPosts
+    return postList
 
 def newpost(request):
     context = RequestContext(request)
@@ -213,44 +242,44 @@ def comments(request,username,post_id):
     return None
 
 '''
-    RESTful API for One author's posts
+    RESTful API for Currently Authenticated user's posts
     
-    This function is called when /author<username>/posts is called with GET, POST,
-    PUT or DELETE HTTP requests and it shows information about author's
-    posts.
+    This function is called when /author/posts/ is called with GET HTTP requests
+    and it shows information about author's posts.
     
     For GET requests, it returns all posts that the user has access to.
-    For POST requests, if an id is specified and if the post exists, then it
-    will update the post to newly given information in POST request body if
-    the specified user is the author.  If the post does not exist in the
-    database, then it will create a new post with specified author as an author.
-    For PUT request, it will modify the posts in the PUT request body that exists in
-    the database already. For each post that does not exist in the database, the API
-    will output an HTML string to warn the user.
-    For DELETE request, it will delete all posts that the specified user has
-    authored. Only the author and the server admin have the permission to do this.
     '''
 @csrf_exempt
-def posts(request, username):
+def posts(request):
+    username = request.session["username"]
     context = RequestContext(request)
     currentHost = request.get_host()
     if request.method == 'GET':
         #need to add permission stuff when friends are implemented
-        try:
-            userInfo = Users.objects.get(username=username)
-        except ObjectDoesNotExist:
-            return HttpResponse("<p>Username specified does not exist in the database</p>\r\n", content_type="text/html")
-        try:
-            posts = Posts.objects.filter(author=userInfo).order_by("-pub_date")
-        except ObjectDoesNotExist:
-            return HttpResponse("<p>This user does not have any posts.</p>\r\n", content_type="text/html")
+        userInfo = Users.objects.get(username=username)
+        authorposts = Posts.objects.filter(author=userInfo)
+        publicPosts = Posts.objects.filter(permission="PUBLIC").exclude(author=userInfo)
+        currentHost = request.get_host()
+        friends = list(Friends.objects.all())
+        friend_check = [x.username2 for x in friends if (x.username1 == username and x.accept== 1)] + [x.username1 for x in friends if (x.username2== username and x.accept== 1)]
         
-        jsonResult = post2Json(currentHost, posts, "posts")
+        authorData = post2Json(currentHost, authorposts).get("posts")
+        publicPosts = post2Json(currentHost, publicPosts).get("posts")
+        serverOnlyPosts = getServerOnlyPosts(username, currentHost, friend_check)
+        friendsPosts = getAllFriendPosts(username, currentHost, friend_check)
+        postList = dict()
+        postList["posts"] = []
+        mergedList = authorData + publicPosts + serverOnlyPosts + friendsPosts
+        mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
+        for listitem in mergedList:
+            postList["posts"].append(listitem)
+        
+        #jsonResult = post2Json(currentHost, posts, "posts")
         # must have content_type parameter to not include HTTPResponse
         # values included in the JSON result to be passed to the AJAX call
         #return jsonResult
-        return HttpResponse(json.loads(jsonResult), content_type="application/json")
-    
+        return HttpResponse(json.loads(json.dumps(json.dumps(postList))), content_type="application/json")
+    '''
     elif request.method == 'POST':
         print "restful POST requested"
         try:
@@ -364,6 +393,24 @@ def posts(request, username):
         return HttpResponse("<p>Posts have been deleted.</p>", content_type="text/html")
     else:
         return HttpResponseNotAllowed
+        '''
+
+'''
+    RESTFul for http://localhost:8000/posts
+    
+    GET all public posts within the server.
+'''
+def pubposts(request):
+    if request.method == "GET":
+        currentHost = request.get_host()
+        publicPosts = Posts.objects.filter(permission="PUBLIC", source=currentHost)
+        publicPosts = post2Json(currentHost, publicPosts)
+        return HttpResponse(json.loads(json.dumps(json.dumps(publicPosts))), content_type="application/json")
+
+
+def authorposts(reqeust):
+    print "authorposts"
+
 
 '''
 This method is called by posts to format the JSON as to appropriate format to be inserted into the database.
@@ -390,7 +437,7 @@ It takes the database query result and pases the QuerySet and create a properly 
 @return JSON object to be sent as a response to an AJAX call
     
 '''
-def post2Json(host, queryset, param):
+def post2Json(host, queryset):
     # TODO Date format is currently wrong! May have to change
     # the format when it's being inserted into DB
     post_lists = dict()
@@ -424,11 +471,7 @@ def post2Json(host, queryset, param):
         querylist.append(post)
     post_lists["posts"] = querylist
     
-    # curl requires differnt output
-    if param != "posts":
-        return json.loads(json.dumps(post_lists, default=date_handler))
-    else:
-        return json.dumps(json.dumps(post_lists, default=date_handler))
+    return json.loads(json.dumps(post_lists, default=date_handler))
 
 '''
 date_handler function changes the date format to the one
@@ -441,7 +484,6 @@ that can be serialized by the json python library
 # code taken and modified from:
 # http://blog.codevariety.com/2012/01/06/python-serializing-dates-datetime-datetime-into-json/
 def date_handler(obj):
-    print obj
     return obj.strftime('%b %d, %Y at %H:%M' ) if hasattr(obj, 'isoformat') else obj
 
 '''
@@ -494,7 +536,7 @@ def post(request, username, post_id):
         #used filter instead of get to use post2Json method
         post = Posts.objects.filter(id=post_id)
         currentHost = request.get_host()
-        jsonResult = post2Json(currentHost, post, '')
+        jsonResult = post2Json(currentHost, post)
         # must have content_type parameter to not include HTTPResponse
         # values included in the JSON result to be passed to the AJAX call
         return HttpResponse(jsonResult, content_type="application/json")
