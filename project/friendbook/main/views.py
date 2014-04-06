@@ -112,8 +112,6 @@ def getGitHubEvents(githubAccount):
             stripedDate = stripedDate.replace('T', ' ')
             postDate = datetime.strptime(stripedDate, '%Y-%m-%d %H:%M:%S').strftime('%b %d, %Y at %H:%M')
             item["pubDate"] = postDate
-            print(postDate)
-            print(type(postDate))
         return jsonResponse
     else:
         return list()
