@@ -672,18 +672,57 @@ def friends (request,username):
     if username == data["author"]:
         authorlist = data["authors"]
         for author in authorlist:
-            friendname = Users.objects.get(guid=author).username
+            
+            try:
+                friendname = Users.objects.get(guid=author).username
+            except:
+                friendname = ""
 
-            num_results = Friends.objects.filter(username1=author,username2=name,accept=1).count() + Friends.objects.filter(username1=name,username2=author,accept=1).count()
+            num_results = Friends.objects.filter(username1=friendname,username2=name,accept=1).count() + Friends.objects.filter(username1=name,username2=friendname,accept=1).count()
+
             if num_results > 0:
                 match.append(author)
-    print match
+        newjson  = dict()
+        newjson["query"] = "friends"
+        newjson["author"] = username
+        newjson["friends"] = match
+        return HttpResponse(json.loads(json.dumps(json.dumps(newjson))), content_type="application/json")
+
+    else:
+        return HttpResponse("<p>You do not have appropriate json author.</p>\r\n", content_type="text/html") 
   else: 
     return HttpResponseNotAllowed
 
-
+@require_http_methods(["POST"])
+@csrf_exempt
 def friend (request, username, friend_id):
-   return None
+    if request.method == 'POST':
+        try:
+            friendname = Users.objects.get(guid=friend_id).username
+        except:
+            friendname = ""
+
+        try:
+            name = Users.objects.get(guid=username).username
+        except:
+            name = ""
+
+        num_results = Friends.objects.filter(username1=friendname,username2=name,accept=1).count() + Friends.objects.filter(username1=name,username2=friendname,accept=1).count()
+        conclusion = ""
+        
+        if num_results > 0:
+            conclusion = "YES"
+        else:
+            conclusion = "NO"
+
+        newjson  = dict()
+        newjson["query"] = "friends"
+        newjson["authors"] = [username,friend_id]
+        newjson["friends"] = conclusion
+
+        return HttpResponse(json.loads(json.dumps(json.dumps(newjson))), content_type="application/json")
+    else: 
+        return HttpResponseNotAllowed
 
 @require_http_methods(["POST"])
 @csrf_exempt
