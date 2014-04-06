@@ -279,9 +279,9 @@ def comments(request,userID,post_id):
         if 'comment_submit_form' in request.POST:
             form = CommentForm(request.POST)
             if form.is_valid():
-                user = Users.objects.get(username=username)
+                user = Users.objects.get(guid=userID)
                 post = Posts.objects.get(guid=post_id)
-                comment = Comment.objects.create(postguid = post, author = user, comment = form['comment'].value())
+                comment = Comment.objects.create(guid=uuid.uuid4(), postguid = post, author = user, comment = form['comment'].value())
                 return redirect("wall")
     elif request.method == "GET":
         currentHost = request.get_host()
