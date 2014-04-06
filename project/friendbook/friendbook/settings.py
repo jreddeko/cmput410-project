@@ -92,6 +92,13 @@ STATICFILES_DIRS = (
     STATIC_URL,
 )
 
+'''
+#Required for windows
+STATIC_URL = '/static/'
+STATICFILES_DIRS = ( os.path.join('static'), )
+'''
+
+
 # Templates
 TEMPLATE_URL = os.path.abspath(os.path.join(BASE_DIR, 'templates')) + '/'
 TEMPLATE_DIRS = (
