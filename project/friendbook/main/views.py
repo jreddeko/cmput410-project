@@ -653,22 +653,54 @@ def image (request,username,image_id):
   else: 
     return HttpResponseNotAllowed
   
+
+@require_http_methods(["POST"])
+@csrf_exempt
 def friends (request,username):
-  return HttpResponse("all friends of " + username)
+  if request.method == 'POST':
+    data = json.loads(request.body)
+    match = []
+    try:
+        name = Users.objects.get(guid=data["author"]).username
+    except:
+        name = ""
+
+    if username == data["author"]:
+        authorlist = data["authors"]
+        for author in authorlist:
+            friendname = Users.objects.get(guid=author).username
+
+            num_results = Friends.objects.filter(username1=author,username2=name,accept=1).count() + Friends.objects.filter(username1=name,username2=author,accept=1).count()
+            if num_results > 0:
+                match.append(author)
+    print match
+  else: 
+    return HttpResponseNotAllowed
 
 
 def friend (request, username, friend_id):
-  if request.method == 'GET':
-    return HttpResponse("friend : " + friend_id + ", from " + username)
-  elif request.method == 'POST':
-    #modify friend
-    doSomething()
-  elif request.method == 'PUT':
-    #add friend
-    doSomething()
-  elif request.method == 'DELETE':
-    #delete friend
-    doSomething()
+   return None
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def friendrequest (request):
+  if request.method == 'POST':
+    data = json.loads(request.body)
+    host = "http://" + request.get_host() + "/"
+    print host
+    print data["author"]["host"]
+    if data["author"]["host"] == host:
+        if data["friend"]["author"]["host"] == host:
+            friends = Friends.objects.create(username1 = data["author"]["displayname"], username2=data["friend"]["author"]["displayname"], accept=0)
+            return HttpResponse("<p>Friend Request has been sent!</p>\r\n", content_type="text/html")
+        else:
+            friends = Friends.objects.create(username1 = data["author"]["displayname"], username2=data["friend"]["author"]["displayname"], accept=0,server=data["friend"]["author"]["host"])
+            return HttpResponse("<p>Friend Request has been sent!</p>\r\n", content_type="text/html")
+    elif data["friend"]["author"]["host"] == host:
+            friends = Friends.objects.create(username2 = data["author"]["displayname"], username1=data["friend"]["author"]["displayname"], accept=0,server=data["author"]["host"])
+            return HttpResponse("<p>Friend Request has been sent!</p>\r\n", content_type="text/html")
+    else:
+        return HttpResponse("<p>Friend Request using wrong host!</p>\r\n", content_type="text/html")
   else: 
     return HttpResponseNotAllowed
   
