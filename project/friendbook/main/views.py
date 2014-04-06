@@ -17,6 +17,7 @@ from django.core.urlresolvers import reverse
 import json
 import time
 from datetime import datetime
+import urllib
 import urllib2
 import uuid
 import urlparse
@@ -135,7 +136,7 @@ def wall(request):
             new_post.source = currentHost
             new_post.origin = currentHost
             #need the db guid field to be string
-            #new_post.guid = uuid.uuid4().int
+            new_post.guid = uuid.uuid4()
             new_post.save()
         else:
             print "invalid form"
@@ -146,6 +147,14 @@ def wall(request):
     
     friends = list(Friends.objects.all())
     friend_check = [x.username2 for x in friends if (x.username1 == me and x.accept== 1)] + [x.username1 for x in friends if (x.username2== me and x.accept== 1)]
+    
+    friend_infos = []
+    for friend in friend_check:
+        friendDict = dict()
+        friendUser = Users.objects.get(username=friend)
+        friendDict["username"] = friend
+        friendDict["guid"] = friendUser.guid
+        friend_infos.append(friendDict)
 
     authorData = post2Json(currentHost, authorposts).get("posts")
     publicPosts = post2Json(currentHost, publicPosts).get("posts")
@@ -155,9 +164,17 @@ def wall(request):
     mergedList = githubActivity + authorData + publicPosts + serverOnlyPosts + friendsPosts
     mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
 
-    return render_to_response('main/postwall.html', 
-        {"user_id": userInfo.guid, "username": request.session['username'], "posts": mergedList, 'comment_form':CommentForm(),'friends': friend_check}, context)
+    return render_to_response('main/postwall.html', {"user_id": userInfo.guid, "username": request.session['username'], "posts": mergedList, "comment_form":CommentForm(), "friends": friend_infos}, context)
 
+'''
+    This method gets all the posts made by the currently authenticated
+    user's friends by querying the database.
+    
+    @param  user        currently authenticated user
+    @param  host        current host
+    @param  friendlist  username list of friends
+    @return             list of all posts
+'''
 def getAllFriendPosts(user, host, friendlist):
     postList = []
     for friend in friendlist:
@@ -173,6 +190,15 @@ def getAllFriendPosts(user, host, friendlist):
             postList += friendPosts
     return postList
 
+'''
+    This method gets all the posts made by the currently authenticated
+    user's friends within the same server by querying the database.
+    
+    @param  user        currently authenticated user
+    @param  host        current host
+    @param  friendlist  username list of friends
+    @return             list of all posts
+'''
 def getServerOnlyPosts(user, host, friendlist):
     postList = []
     for friend in friendlist:
@@ -185,6 +211,10 @@ def getServerOnlyPosts(user, host, friendlist):
             postList += friendPosts
     return postList
 
+'''
+    Navigate to the Create Post page to display the django form for
+    post creation
+'''
 def newpost(request):
     context = RequestContext(request)
     userInfo = Users.objects.get(username=request.session["username"])
@@ -244,7 +274,7 @@ def friendship_accept(request):
 
     return redirect("search_users")
 
-def comments(request,username,post_id):
+def comments(request,userID,post_id):
     if request.method == "POST":
         if 'comment_submit_form' in request.POST:
             form = CommentForm(request.POST)
@@ -307,14 +337,14 @@ def pubposts(request):
         return HttpResponse(json.loads(json.dumps(json.dumps(publicPosts))), content_type="application/json")
 
 '''
-    RESTFul for http://localhost:8000/author/<author_username>/posts
+    RESTFul for http://localhost:8000/author/<author UUID>/posts
     
     GET all public posts within the server.
 '''
-def authorposts(request, username):
+def authorposts(request, userID):
     if request.method == "GET":
         currentHost = request.get_host()
-        userInfo = Users.objects.get(username=username)
+        userInfo = Users.objects.get(guid=userID)
         publicPosts = Posts.objects.filter(permission="PUBLIC", author=userInfo)
         friendPosts = Posts.objects.filter(permission="FRIENDS", author=userInfo)
         serveronlyPosts = Posts.objects.filter(permission="SERVERONLY", author=userInfo)
@@ -349,14 +379,14 @@ def post2Json(host, queryset):
     post_lists = dict()
     querylist = []
     for queryResult in queryset:
-        authorInfo = Users.objects.get(id=queryResult.author.id)
+        authorInfo = Users.objects.get(guid=queryResult.author.guid)
         user = {}
-        user["id"] = authorInfo.id
+        user["id"] = authorInfo.guid
         # TODO change this when we are communicating with other servers
         # they may have to specify their url?
         user["host"] = host
         user["displayname"] = authorInfo.username
-        user["url"] = host+"/author/"+str(authorInfo.id)
+        user["url"] = host+"/author/"+str(authorInfo.guid)
         
         post = {}
         post["title"] = queryResult.title
@@ -370,8 +400,8 @@ def post2Json(host, queryset):
         post["categories"] = categories
         #need to make a function to get all comments of this post
         comments = []
-        
-        getCommentJson = urllib2.urlopen("http://"+host+"/author/"+queryResult.author.username+"/posts/"+str(queryResult.guid)+"/comments/").read()
+        req = urllib2.Request("http://"+host+"/author/"+str(queryResult.author.guid)+"/posts/"+str(queryResult.guid)+"/comments/")
+        getCommentJson = urllib2.urlopen(req).read()
         
         commentjson = json.loads(getCommentJson)
         for comment in commentjson:
@@ -403,9 +433,9 @@ def comment2Json(host, queryset):
     comment_lists = dict()
     querylist = []
     for queryResult in queryset:
-        authorInfo = Users.objects.get(id=queryResult.author.id)
+        authorInfo = Users.objects.get(guid=queryResult.author.guid)
         user = {}
-        user["id"] = authorInfo.id
+        user["id"] = authorInfo.guid
         # TODO change this when we are communicating with other servers
         # they may have to specify their url?
         user["host"] = host
@@ -577,7 +607,7 @@ def post(request, post_id):
         postInfo = Posts.objects.get(guid=post_id)
         
         #server admins and the author has the permissions to delete the post
-        if userInfo.role == "admin" or postInfo.author.id == userInfo.id:
+        if userInfo.role == "admin" or postInfo.author.guid == userInfo.guid:
             postInfo.delete()
             return HttpResponse("<p>Post has been deleted.</p>\r\n", content_type="text/html")
         #user specified is not author/server admin, so give them a warning

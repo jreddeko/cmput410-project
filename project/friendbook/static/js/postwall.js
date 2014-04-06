@@ -4,6 +4,7 @@
 $(document).ready(function (){
     postButtonClickEvent();
     
+    // bind click event to the "All" in the right side of the page
     $("#all_posts").click(function(e) {
         e.preventDefault();
         $.ajax({
@@ -20,7 +21,8 @@ $(document).ready(function (){
 
         });
     });
-                  
+           
+    // bind click event to the "Public" in the right side of the page
     $("#public_posts").click(function(e){
         e.preventDefault();
         $.ajax({
@@ -37,12 +39,13 @@ $(document).ready(function (){
               
           });
     });
-                  
+        
+    // bind click event to the "Me" in the right side of the page
     $("#my_posts").click(function(e){
         e.preventDefault();
-        var currentUser = $("h1.blog-title").first().text().trim();
+        var currentUserId = $("h1.blog-title").first().attr("id");
         $.ajax({
-              url: "http://"+window.location.host+"/author/"+currentUser+"/posts/",
+              url: "http://"+window.location.host+"/author/"+currentUserId+"/posts/",
               type: "GET",
               success: function(data) {
                   displayJsonData(data["posts"]);
@@ -56,12 +59,12 @@ $(document).ready(function (){
         });
     });
 
-                  
+    // bind click event to anchor element for each friends
     $(".friend_lists").click(function(e){
         e.preventDefault();
-        var username = $(this).text().trim();
+        var userid = $(this).attr("id");
         $.ajax({
-              url: "http://"+window.location.host+"/author/"+username+"/posts/",
+              url: "http://"+window.location.host+"/author/"+userid+"/posts/",
               type: "GET",
               success: function(data) {
                   displayJsonData(data["posts"]);
@@ -77,12 +80,38 @@ $(document).ready(function (){
                   
 });
 
+/**
+ * This method is used to get the UUID appended
+ * to the HTML ID attribute.
+ *
+ * @param htmlid    HTML ID attribute containing UUID as part of its ID
+ *
+ * @return          UUID of the post
+ */
+function getUuid(htmlid)
+{
+    var idInfo = htmlid.split("-");
+    var uuid = idInfo[1];
+    
+    for(var i=2; i < idInfo.length; i++)
+    {
+        uuid += "-"+idInfo[i];
+    }
+    
+    return uuid
+}
+
+/**
+ *  This method is to bind the click event to the
+ *  edit and delete button associated with each posts
+ *  made by the currently authenticated user.
+ */
 function postButtonClickEvent()
 {
     $(".post_buttons").click(function(e) {
          e.preventDefault();
          // reactivate the tinymce with the contents inside
-         var currentdbId = $(this).attr("id").split("-")[1];
+         var currentdbId = getUuid($(this).attr("id"));
          
          if($(this).text().trim() == "Edit")
          {
@@ -137,7 +166,6 @@ function postButtonClickEvent()
  */
 function displayJsonData(json)
 {
-    console.log(json);
     var posts = json;
     $(".blog-main").remove();
     var currentUser = $("h1.blog-title").first().text().trim();
@@ -148,11 +176,22 @@ function displayJsonData(json)
         
         var postMainDiv = makePostDiv(id, currentUser, posts[i]);
         
-        $("#post_wall_container").append(postmain);
+        $("#post_wall_container").append(postMainDiv);
     }
     postButtonClickEvent();
 }
 
+/**
+ * This method is used to create the HTML to display each of the posts.
+ * it takes the information given in the post in a JSON object format
+ * and generates the HTML to be displayed.
+ *
+ * @param   postid      UUID of the post
+ * @param   currentUser currently authenticated user
+ * @param   post        JSON object containing all information associated with the post
+ *
+ * @return  jQuery object that represents the top container div for the posts
+ */
 function makePostDiv(postid, currentUser, post)
 {
     var postmain = $("<div id='post_wall-"+postid+"' class='col-sm-8 blog-main'></div>");
@@ -250,12 +289,9 @@ function deletePost(username, dbId)
        buttons: {
            "Delete": function() {
                $(this).dialog("close");
-               
-               // PUT and DELETE type is not supported by firefox
                $.ajax({
                   url: "http://"+window.location.host+"/posts/"+dbId+"/",
-                  type: "POST",
-                  data: {"method": "delete"},
+                  type: "DELETE",
                   success: function(data) {
                       $(this).empty().remove();
                       confirmationDialog(data);
@@ -387,23 +423,29 @@ function text2form(currentdbId)
     submitUpdate();
 }
 
+/**
+ * This method is used to use AJAX to update the posts
+ * that were created by the current user.  It calls
+ * http://localhost:8000/posts/<postID>/ webservice with
+ * POST method to modify the post.
+ */
 function submitUpdate()
 {
     $("#update_form").submit(function(e) {
          e.preventDefault();
          var currentUser = $("h1.blog-title").first().text().trim();
          var url = $(this).attr("action");
-         var idInfo = $(this).find("select").first().attr("id").split("-");
-         var permissionVal = $("#post_permission-"+idInfo[1]).val();
-         var categoryVal = $("#edit_post_category-"+idInfo[1]).val();
-         var titleVal = $("#post_title-"+idInfo[1]).val();
-         var descriptionVal = $("#edit_post_description-"+idInfo[1]).val();
-         var contentVal = $("#edit_post_content-"+idInfo[1]).val();
+         var guid = getUuid($(this).find("select").first().attr("id"));
+         var permissionVal = $("#post_permission-"+guid).val();
+         var categoryVal = $("#edit_post_category-"+guid).val();
+         var titleVal = $("#post_title-"+guid).val();
+         var descriptionVal = $("#edit_post_description-"+guid).val();
+         var contentVal = $("#edit_post_content-"+guid).val();
          $.ajax({
                 url: url,
                 type: "POST",
                 data: {
-                    "id": idInfo[1],
+                    "id": guid,
                     "permission": permissionVal,
                     "category": categoryVal,
                     "title": titleVal,
@@ -411,10 +453,10 @@ function submitUpdate()
                     "content": contentVal
                 },
                 success: function(data) {
-                    var newpostDiv = makePostDiv(idInfo[1], currentUser, data["posts"][0]);
+                    var newpostDiv = makePostDiv(guid, currentUser, data["posts"][0]);
                 
-                    $("#edit_post-"+idInfo[1]).empty().remove();
-                    $("#post_wall-"+idInfo[1]).replaceWith(newpostDiv);
+                    $("#edit_post-"+guid).empty().remove();
+                    $("#post_wall-"+guid).replaceWith(newpostDiv);
                     postButtonClickEvent();
                 },
                 error: function(jqXHR, textStatus, errorThrown) {

@@ -57,7 +57,7 @@
     <div class="container">
         <div class="blog-header">
             <!-- update Username to actual username when sessions are set. -->
-            <h1 class="blog-title">{{ username }}</h1>
+            <h1 id="{{user_id}}" class="blog-title">{{ username }}</h1>
             <p class="lead blog-description">Welcome to Social Media!</p>
         </div>
         
@@ -70,7 +70,7 @@
                     <h3> <a href="#" id="my_posts">-- Me --</a> </h3>
                     <h3> -- Friends -- </h3>
                     {% for friend in friends %}
-                        <a class="friend_lists" href="#" id="{{ friend }}">{{friend}}</a>
+                        <a class="friend_lists" href="#" id='{{ friend.guid }}'>{{ friend.username }}</a>
                     {%endfor%}
                 </div>
             </div><!-- /.blog-sidebar -->
@@ -159,7 +159,7 @@
 
                 <div id="post_commentform-{{ post.guid }}" class="well">
                     <div class="form-group">
-                        <form class="form-horizontal" action="/author/{{username}}/posts/{{post.guid}}/comments/" method="post">{% csrf_token %}
+                        <form class="form-horizontal" action="/author/{{user_id}}/posts/{{post.guid}}/comments/" method="post">{% csrf_token %}
                             <label for="id_comment" class="col-sm-3">Your comment:</label>
                             {{ comment_form.comment }}
                             <input type="submit" name="comment_submit_form" class="btn btn-primary" value="Submit" />
