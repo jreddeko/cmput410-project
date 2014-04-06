@@ -108,6 +108,10 @@ def getGitHubEvents(githubAccount):
         for item in jsonResponse:
             item["pubDate"] = item["created_at"]
             del item["created_at"]
+            stripedDate = item["pubDate"].replace('Z', '')
+            stripedDate = stripedDate.replace('T', ' ')
+            postDate = datetime.strptime(stripedDate, '%Y-%m-%d %H:%M:%S').strftime('%b %d, %Y at %H:%M')
+            item["pubDate"] = postDate
         return jsonResponse
     else:
         return list()
@@ -162,7 +166,7 @@ def wall(request):
     friendsPosts = getAllFriendPosts(me, currentHost, friend_check)
     
     mergedList = githubActivity + authorData + publicPosts + serverOnlyPosts + friendsPosts
-    mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
+    mergedList.sort(key = lambda item:datetime.strptime((item["pubDate"]), '%b %d, %Y at %H:%M'), reverse = True)
 
     return render_to_response('main/postwall.html', {"user_id": userInfo.guid, "username": request.session['username'], "posts": mergedList, "comment_form":CommentForm(), "friends": friend_infos}, context)
 
