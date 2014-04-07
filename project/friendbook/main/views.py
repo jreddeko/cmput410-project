@@ -47,7 +47,7 @@ def index(request):
             else:
                 return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
         else:
-            guid = uuid.uuid4().int
+            guid = uuid.uuid4()
             username = request.POST["username"]
             password = request.POST["password"]
             role = "Author"
