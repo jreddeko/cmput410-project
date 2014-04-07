@@ -174,10 +174,13 @@ def wall(request):
     friend_infos = []
     for friend in friend_check:
         friendDict = dict()
-        friendUser = Users.objects.get(username=friend)
-        friendDict["username"] = friend
-        friendDict["guid"] = friendUser.guid
-        friend_infos.append(friendDict)
+        try:
+            friendUser = Users.objects.get(username=friend)
+            friendDict["username"] = friend
+            friendDict["guid"] = friendUser.guid
+            friend_infos.append(friendDict)
+        except:
+            print friend
 
     authorData = post2Json(currentHost, authorposts).get("posts")
     publicPosts = post2Json(currentHost, publicPosts).get("posts")
@@ -462,6 +465,7 @@ def post2Json(host, queryset):
         #need to make a function to get all comments of this post
         comments = []
         req = urllib2.Request("http://"+host+"/author/"+str(queryResult.author.guid)+"/posts/"+str(queryResult.guid)+"/comments/")
+        print req
         getCommentJson = urllib2.urlopen(req).read()
         
         commentjson = json.loads(getCommentJson)
