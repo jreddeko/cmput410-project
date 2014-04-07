@@ -364,11 +364,11 @@ def pubposts(request):
 '''
     RESTFul for http://localhost:8000/author/<author UUID>/posts
     
-    GET all public posts within the server.
+    GET all posts made by the user.
 '''
 def authorposts(request, user_id):
     username = request.session["username"]
-    print username
+
     if not can_share_posts(username):
         return HttpResponseForbidden()
     if request.method == "GET":
