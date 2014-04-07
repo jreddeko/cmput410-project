@@ -32,13 +32,16 @@ class Posts(models.Model):
     permission = models.CharField(max_length=100,choices=PERMISSION_LEVELS)
     pubdate = models.DateTimeField(auto_now_add=True, blank=True)
 
-
 class Comment(models.Model):
     guid = models.CharField(max_length=100,primary_key=True)
     postguid = models.ForeignKey(Posts)
     author = models.ForeignKey(Users)
     comment = models.TextField()
     pubDate = models.DateTimeField(auto_now_add=True, blank=True)
+
+class ServerPermission(models.Model):
+    permission = models.TextField()
+    value = models.BooleanField()
 
 class Friends(models.Model):
     username1 = models.TextField()
@@ -78,6 +81,11 @@ class PostsForm(ModelForm):
         self.fields['title'].widget.attrs.update({'style':"width: 90%;",'placeholder':"Please input the author's username."})
         self.fields['category'].widget.attrs.update({'style':"width: 90%;",'placeholder':"(e.g. Medical, Health)"})
         self.fields['description'].widget.attrs.update({'style':"width: 90%;",'placeholder':"Description of the post"})
+
+class ServerPermissionForm(ModelForm):
+    class Meta:
+        model = ServerPermission
+        fields = ['value']
 
 class CommentForm(ModelForm):
     class Meta:

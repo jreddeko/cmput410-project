@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.shortcuts import redirect
-from django.http import HttpResponse,StreamingHttpResponse, HttpResponseRedirect
+from django.http import HttpResponse,StreamingHttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers.json import DjangoJSONEncoder
@@ -11,9 +11,10 @@ from django.db import IntegrityError
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
-from main.models import Users, Posts, Comment , Friends, PostsForm, CommentForm, Image, ImageForm, UserForm
+from main.models import Users, Posts, Comment , Friends, ServerPermission, PostsForm, CommentForm, Image, ImageForm, UserForm, ServerPermissionForm
 from django.core.urlresolvers import reverse
 from django.contrib.admin.views.decorators import staff_member_required
+from django.core.exceptions import PermissionDenied
 
 import json
 import time
@@ -26,8 +27,8 @@ import urlparse
 @require_http_methods(["GET", "POST"])
 def index(request):
     context = RequestContext(request)
-
     if (request.method == "GET"):
+        logout(request)
         return render_to_response('main/index.html', context)
     else:
         if ("login" in request.POST):
@@ -89,11 +90,27 @@ def logout(request):
 
   return redirect("index")
   
+
 @staff_member_required
 def server_admin(request):
-  if request.method == 'GET':
     context = RequestContext(request)
+
+    article_posts = get_server_permission('can_share_posts')
+    article_images = get_server_permission('can_share_images')
+
+    if request.method == 'POST':
+
+        share_posts = request.POST.get('public_posts')
+        share_images = request.POST.get('public_images')
+
+        article_posts.value = True if share_posts else False   
+        article_posts.save() 
+        article_images.value = True if share_images else False
+        article_images.save() 
+
     context['users'] = list(Users.objects.all())
+    context['share_posts'] = article_posts.value
+    context['share_images'] = article_images.value
     return render_to_response('main/server_admin.html', context)
 
 def users(request):
@@ -307,6 +324,8 @@ def comments(request,userID,post_id):
 @csrf_exempt
 def posts(request):
     username = request.session["username"]
+    if not can_share_posts(username):
+        return HttpResponseForbidden()
     context = RequestContext(request)
     currentHost = request.get_host()
     if request.method == 'GET':
@@ -347,10 +366,14 @@ def pubposts(request):
     
     GET all public posts within the server.
 '''
-def authorposts(request, userID):
+def authorposts(request, user_id):
+    username = request.session["username"]
+    print username
+    if not can_share_posts(username):
+        return HttpResponseForbidden()
     if request.method == "GET":
         currentHost = request.get_host()
-        userInfo = Users.objects.get(guid=userID)
+        userInfo = Users.objects.get(guid=user_id)
         publicPosts = Posts.objects.filter(permission="PUBLIC", author=userInfo)
         friendPosts = Posts.objects.filter(permission="FRIENDS", author=userInfo)
         serveronlyPosts = Posts.objects.filter(permission="SERVERONLY", author=userInfo)
@@ -654,8 +677,11 @@ def post(request, post_id):
     else:
         return HttpResponseNotAllowed
 
-def images (request):
+def images(request):
     context = RequestContext(request)
+    username=request.session["username"]
+    if not can_share_images(username):
+        return HttpResponseForbidden()
     if request.method == 'GET':
         form = ImageForm()
         images = Image.objects.filter(user=Users.objects.get(username=request.session["username"]))
@@ -807,6 +833,31 @@ def user(request, userID):
     else:
       #if the user doesn't exist, return an error message
       return HttpResponse(json.dumps({"error": "The requested user does not exist"}))
+
+
+def get_server_permission(perm):
+    try:
+        return ServerPermission.objects.get(permission=perm)
+    except:
+        return ServerPermission.objects.create(permission=perm,value=False)
+
+def can_share_posts(username):
+    try:
+        ServerPermission.objects.get(permission='can_share_posts', value=True)
+        return True 
+    except:
+        if Users.objects.filter(username = username).exists():
+            return True
+        return False
+
+def can_share_images(username):
+    try:
+        ServerPermission.objects.get(permission='can_share_images', value=True)
+        return True 
+    except:
+        if Users.objects.filter(username = username).exists():
+            return True
+        return False
 
 def doSomething():
   return null

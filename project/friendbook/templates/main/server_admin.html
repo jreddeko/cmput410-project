@@ -93,27 +93,27 @@
 
 								<div class = "app-auth module">
 									<fieldset class = "module aligned">
-										<h2> Permissions </h2>
-										<div class="form-row posts-is_active">
-											<div class="checkbox-row">
-												<input checked="checked" name="is_public_posts" type="checkbox">
-												<label class="vCheckboxLabel" for="id_is_public_posts">Public Posts</label>
-												<p class="help">Designates whether posts can be shared with other servers.</p>
+										<form action="" method="POST">
+											{% csrf_token %}
+											<div class="form-row posts-is_active">
+												<div class="checkbox-row">
+													<label class="vCheckboxLabel">Public Posts</label>
+													
+													<input type="checkbox" name="public_posts" {% if share_posts %} checked="true" {% endif %}>
+													<p class="help">Designates whether posts can be shared with other servers.</p>
+												</div>
 											</div>
-										</div>
-										<div class="form-row field-is_staff">
+											<div class="form-row field-is_staff">
+												<div class="checkbox-row">
+													<label class="vCheckboxLabel">Public Images</label>
+													<input type="checkbox" name="public_images" {% if share_images %} checked="true" {% endif %}>
+													<p class="help">Designates whether images can be shared with other servers.</p>
+												</div>
+											</div>
 											<div class="checkbox-row">
-												
-										<div class="checkbox-row">
-											<form action="" method="POST">
-												{% csrf_token %}
 												<input type="submit" value="Save" class="default" name="_save">
-											</form>
-										</div><input checked="checked" name="is_public_images" type="checkbox">
-												<label class="vCheckboxLabel">Public Images</label>
-												<p class="help">Designates whether images can be shared with other servers.</p>
 											</div>
-										</div>
+										</form>
 									</div>
 								</div>
 							</div>
