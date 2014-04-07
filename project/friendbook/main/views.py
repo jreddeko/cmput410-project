@@ -47,7 +47,7 @@ def index(request):
             else:
                 return render_to_response("main/index.html", {"loginError": "Error: wrong username/password"}, context)
         else:
-            guid = uuid.uuid4().int
+            guid = uuid.uuid4()
             username = request.POST["username"]
             password = request.POST["password"]
             role = "Author"
@@ -462,6 +462,7 @@ def post2Json(host, queryset):
         #need to make a function to get all comments of this post
         comments = []
         req = urllib2.Request("http://"+host+"/author/"+str(queryResult.author.guid)+"/posts/"+str(queryResult.guid)+"/comments/")
+        print req
         getCommentJson = urllib2.urlopen(req).read()
         
         commentjson = json.loads(getCommentJson)
