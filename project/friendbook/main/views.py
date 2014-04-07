@@ -11,8 +11,9 @@ from django.db import IntegrityError
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
-from main.models import Users, Posts, Comment , Friends, PostsForm, CommentForm, Image, ImageForm
+from main.models import Users, Posts, Comment , Friends, PostsForm, CommentForm, Image, ImageForm, UserForm
 from django.core.urlresolvers import reverse
+from django.contrib.admin.views.decorators import staff_member_required
 
 import json
 import time
@@ -88,6 +89,7 @@ def logout(request):
 
   return redirect("index")
   
+@staff_member_required
 def server_admin(request):
   if request.method == 'GET':
     context = RequestContext(request)
@@ -379,6 +381,38 @@ It takes the database query result and pases the QuerySet and create a properly 
 @return JSON object to be sent as a response to an AJAX call
     
 '''
+
+@staff_member_required
+def activate_user(request, guid):
+    context = RequestContext(request)
+    if request.method == "POST":
+        user = Users.objects.get(guid=guid)
+        user.active = True
+        user.save()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+@staff_member_required
+def delete_user(request, guid):
+    context = RequestContext(request)
+    if request.method == "POST":
+        user = Users.objects.get(guid=guid)
+        user.delete()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+@staff_member_required
+def modify_user(request, guid):
+    context = RequestContext(request)
+    user = Users.objects.get(guid=guid)
+
+    if request.method == "POST":
+        form = UserForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('server_admin')
+        
+    form = UserForm(instance=user)
+    return render_to_response('main/modify_user.html', {'form':form}, context)
+
 def post2Json(host, queryset):
     post_lists = dict()
     querylist = []
@@ -641,21 +675,6 @@ def images (request):
             return HttpResponseRedirect('/images/')
     else:
         return HttpResponseNotAllowed
-
-def image (request,username,image_id):
-  if request.method == 'GET':
-    return HttpResponse("image: " + image_id + ", from " + username)
-  elif request.method == 'POST':
-    #modify image
-    doSomething()
-  elif request.method == 'PUT':
-    #add image
-    doSomething()
-  elif request.method == 'DELETE':
-    #delete image
-    doSomething()
-  else: 
-    return HttpResponseNotAllowed
   
 
 @require_http_methods(["POST"])
@@ -762,7 +781,6 @@ def user(request, userID):
       return HttpResponse(json.dumps({"error": "The requested user does not exist"}))
   elif ((request.method == "POST") or (request.method == "PUT")):
     data = json.loads(request.body)
-
     if (len(Users.objects.exclude(guid = userID).filter(username = data["username"])) == 1):
       #is the username already taken?
       return HttpResponse(json.dumps({"error": "Username already exists"}))
@@ -777,10 +795,8 @@ def user(request, userID):
       registerDate = datetime.now().date()
       active = 0
       github = data["github"]
-            
       newUser = Users(guid = userID, username=username, password=password, role=role, register_date=registerDate, active=active, github_account=github)
       newUser.save()
-
     user = Users.objects.get(guid = userID)
     return HttpResponse(json.dumps({"guid": userID, "username": user.username, "password": user.password, "role": user.role, "registerDate": str(user.register_date), "active": user.active, "github": user.github_account}))
   else:

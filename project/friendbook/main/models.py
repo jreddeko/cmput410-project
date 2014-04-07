@@ -1,5 +1,6 @@
 from django.db import models
 from django.forms import ModelForm
+from django import forms
 
 PERMISSION_LEVELS = (
     ("PUBLIC"    ,"public"),
@@ -54,6 +55,16 @@ class ImageForm(ModelForm):
     class Meta:
         model = Image
         exclude = {'user',}
+
+class UserForm(ModelForm):
+    class Meta:
+        model = Users
+        exclude = {'guid','password','active'}
+        widgets = {
+            'username': forms.TextInput(attrs={'class':'form-control'}),
+            'role': forms.TextInput(attrs={'class':'form-control'}),
+            'github_account': forms.TextInput(attrs={'class':'form-control'}),
+        }
 
 class PostsForm(ModelForm):
     class Meta:

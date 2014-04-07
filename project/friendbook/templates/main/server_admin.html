@@ -7,7 +7,6 @@
 </head>
 <body class="dashboard">
 	<div id = "container">
-		<div id="header">	</div>
 		<div id="content" class="colMS">
 			<h1>Server Administration </h1>
 			<div id="content_main">
@@ -28,14 +27,16 @@
 								<td> {{ item.register_date }}</td> 
 								<td> {{item.role}}</td>
 								<td>
-									<form action="/author/{{ item.username }}/"  method="POST" >
+									<form action="/author/{{ item.guid }}/activate/"  method="POST" >
+										{% csrf_token %}
 										<input type="hidden" value="{{ item.username }}"  name = "username"/>
 										<input type="hidden" value="add" name="method" >
 										<a href="javascript:; parentNode.submit();" onclick="parentNode.submit();" class="addlink">add</A>
 										</form>	
 									</td>
 									<td>
-										<form action="/author/{{ item.username }}/"  method="POST" >
+										<form action="/author/{{ item.guid }}/modify/"  method="POST" >
+											{% csrf_token %}
 											<input type="hidden" value="{{ item.username }}"  name = "username"/>
 											<input type="hidden" value="change" name="method" >
 											<a href="javascript:; parentNode.submit();" onclick="parentNode.submit();" class="changelink">change</A>
@@ -64,14 +65,16 @@
 										<td> {{ item.register_date }}</td> 
 										<td> {{item.role}}</td>
 										<td>
-											<form action="/author/{{ item.username }}/"  method="POST" >
+											<form action="/author/{{ item.guid }}/delete/"  method="POST" >
+												{% csrf_token %}
 												<input type="hidden" value="{{ item.username }}"  name = "username"/>
 												<input type="hidden" value="delete" name="method" >
 												<a href="javascript:; parentNode.submit();" onclick="parentNode.submit();" class="deletelink">delete</A>
 												</form>	
 											</td>
 											<td>
-												<form action="/author/{{ item.username }}/"  method="POST" >
+												<form action="/author/{{ item.guid }}/modify/"  method="POST" >
+													{% csrf_token %}
 													<input type="hidden" value="{{ item.username }}"  name = "username"/>
 													<input type="hidden" value="change" name="method" >
 													<a href="javascript:; parentNode.submit();" onclick="parentNode.submit();" class="changelink">change</A>
@@ -93,20 +96,23 @@
 										<h2> Permissions </h2>
 										<div class="form-row posts-is_active">
 											<div class="checkbox-row">
-												<input checked="checked" id="id_is_public_posts" name="is_public_posts" type="checkbox"><label class="vCheckboxLabel" for="id_is_public_posts">Public Posts</label>
+												<input checked="checked" name="is_public_posts" type="checkbox">
+												<label class="vCheckboxLabel" for="id_is_public_posts">Public Posts</label>
 												<p class="help">Designates whether posts can be shared with other servers.</p>
 											</div>
 										</div>
 										<div class="form-row field-is_staff">
 											<div class="checkbox-row">
-												<input checked="checked" id="is_is_public_images" name="is_public_images" type="checkbox"><label class="vCheckboxLabel" for="is_is_public_images">Public Images</label>
-												<p class="help">Designates whether images can be shared with other servers.</p>
-											</div>
-										</div>
+												
 										<div class="checkbox-row">
 											<form action="" method="POST">
-												<input type="submit" value="Save" class="default" name="_save" onclick="window.location='www.google.ca';">
+												{% csrf_token %}
+												<input type="submit" value="Save" class="default" name="_save">
 											</form>
+										</div><input checked="checked" name="is_public_images" type="checkbox">
+												<label class="vCheckboxLabel">Public Images</label>
+												<p class="help">Designates whether images can be shared with other servers.</p>
+											</div>
 										</div>
 									</div>
 								</div>
