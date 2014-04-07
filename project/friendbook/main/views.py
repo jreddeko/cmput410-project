@@ -174,10 +174,13 @@ def wall(request):
     friend_infos = []
     for friend in friend_check:
         friendDict = dict()
-        friendUser = Users.objects.get(username=friend)
-        friendDict["username"] = friend
-        friendDict["guid"] = friendUser.guid
-        friend_infos.append(friendDict)
+        try:
+            friendUser = Users.objects.get(username=friend)
+            friendDict["username"] = friend
+            friendDict["guid"] = friendUser.guid
+            friend_infos.append(friendDict)
+        except:
+            print friend
 
     authorData = post2Json(currentHost, authorposts).get("posts")
     publicPosts = post2Json(currentHost, publicPosts).get("posts")
