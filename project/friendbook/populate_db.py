@@ -10,6 +10,9 @@ def populate():
     add_user(username="bob", password="test", role="author", active=1, git="")
     add_user(username="david", password="test", role="author", active=1, git="")
     add_user(username="sarah", password="test", role="author", active=1, git="")
+    add_friend(username1="bob", username2="gayoung", accept=0)
+    add_friend(username1="gayoung", username2="matt", accept=1)
+    add_friend(username1="david", username2="matt", accept=1)
 
 def add_user(username, password, role, active, git):
     today = utc.localize(datetime.now())
@@ -18,9 +21,7 @@ def add_user(username, password, role, active, git):
     return user
 
 def add_friend(username1, username2, accept):
-    user1Info = Users.objects.get(username=username1)
-    user2Info = Users.objects.get(username=username2)
-    friend = Friends.objects.get_or_create(username1=user1Info, username2=user2Info, accept=accept)
+    friend = Friends.objects.get_or_create(username1=username1, username2=username2, accept=accept)
     return friend
 
 # Start execution here!

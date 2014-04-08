@@ -258,27 +258,37 @@ def search_users(request):
     request_check = [x.username2 for x in friends if (x.username1 == me and x.accept== 0)] + [x.username1 for x in friends if (x.username2== me and x.accept== 0)]
     return render_to_response('main/search_user.html',{'users': users, 'me': me, 'friends': friends,'check': friend_check,'request_pend': request_check }, context)
 
-
+'''
+Creates Friend Object locally between the active user and another author
+'''
 def friendship(request):
     context = RequestContext(request)
 
     user1 = request.session["username"]
+    #obtained from hidden form
     user2 = request.GET["friendname"]
 
+    #creates friend request that is pending
     friends = Friends.objects.create(username1 = user1, username2=user2, accept=0)
     return redirect("search_users")
 
+'''
+Delete Friend Object locally between the active user and another author
+'''
 def unfriend(request):
     context = RequestContext(request)
 
     user1 = request.session["username"]
+    #obtained from hidden form
     user2 = request.GET["friendname"]
 
+    #checks for both verions of the friend object depending on who added who
     try:
             friends = Friends.objects.get(username1 = user1, username2=user2)
     except:
             friends = Friends.objects.get(username1 = user2, username2=user1)
 
+    #delete friendship
     friends.delete()
     return redirect("search_users")
 
@@ -288,14 +298,18 @@ def friendship_accept(request):
     if request.GET.get('request') == "Accept Request":
         user2 = request.session["username"]
         user1 = request.GET["friendrequest"]
+        #search for pending request
         friend_request = Friends.objects.get(username1=user1, username2=user2)
+        #updates request
         friend_request.accept = 1
+        #now friends
         friend_request.save()
 
     elif request.GET.get('request') == "Decline Request":
         user2 = request.session["username"]
         user1 = request.GET["friendrequest"]
         friend_request = Friends.objects.get(username1=user1, username2=user2)
+        #deletes pending request
         friend_request.delete()
 
     return redirect("search_users")
@@ -706,13 +720,17 @@ def images(request):
     else:
         return HttpResponseNotAllowed
   
-
+'''
+ friend querying via POSTs to http://service/friends/userid
+ posts JSON object , returns JSON object
+'''
 @require_http_methods(["POST"])
 @csrf_exempt
 def friends (request,username):
   if request.method == 'POST':
     data = json.loads(request.body)
     match = []
+    #test if author exist
     try:
         name = Users.objects.get(guid=data["author"]).username
     except:
@@ -721,16 +739,20 @@ def friends (request,username):
     if username == data["author"]:
         authorlist = data["authors"]
         for author in authorlist:
-            
+            #test if friend exist
             try:
                 friendname = Users.objects.get(guid=author).username
             except:
                 friendname = ""
 
+            #check if user is friends with author
             num_results = Friends.objects.filter(username1=friendname,username2=name,accept=1).count() + Friends.objects.filter(username1=name,username2=friendname,accept=1).count()
 
             if num_results > 0:
+                #adds to list if they are friends
                 match.append(author)
+
+        #creates JSON Object
         newjson  = dict()
         newjson["query"] = "friends"
         newjson["author"] = username
@@ -742,37 +764,50 @@ def friends (request,username):
   else: 
     return HttpResponseNotAllowed
 
-@require_http_methods(["POST"])
+'''
+friend2friend querying via GETs to http://service/friends/userid1/userid2
+Returns JSON Object
+'''
+@require_http_methods(["GET"])
 @csrf_exempt
 def friend (request, username, friend_id):
-    if request.method == 'POST':
+    if request.method == 'GET':
+        #checks if user1 exists
         try:
             friendname = Users.objects.get(guid=friend_id).username
         except:
             friendname = ""
-
+        #checks if user2 exists
         try:
             name = Users.objects.get(guid=username).username
         except:
             name = ""
 
+        #checks if a friendship exists already
         num_results = Friends.objects.filter(username1=friendname,username2=name,accept=1).count() + Friends.objects.filter(username1=name,username2=friendname,accept=1).count()
         conclusion = ""
         
         if num_results > 0:
             conclusion = "YES"
         else:
+            #no friendship is found
             conclusion = "NO"
 
+        #create json with results of friend2friend querying
         newjson  = dict()
         newjson["query"] = "friends"
         newjson["authors"] = [username,friend_id]
         newjson["friends"] = conclusion
 
+        #creates HTTPResponse
         return HttpResponse(json.loads(json.dumps(json.dumps(newjson))), content_type="application/json")
     else: 
         return HttpResponseNotAllowed
 
+'''
+friend requests can be made by POSTing a friend request to http://service/friendrequest
+POST json object creates friendrequest
+'''
 @require_http_methods(["POST"])
 @csrf_exempt
 def friendrequest (request):
@@ -781,16 +816,21 @@ def friendrequest (request):
     host = "http://" + request.get_host() + "/"
     print host
     print data["author"]["host"]
+    #checks if author is from this server
     if data["author"]["host"] == host:
+        #checks if friend is from this server
         if data["friend"]["author"]["host"] == host:
             friends = Friends.objects.create(username1 = data["author"]["displayname"], username2=data["friend"]["author"]["displayname"], accept=0)
             return HttpResponse("<p>Friend Request has been sent!</p>\r\n", content_type="text/html")
-        else:
+        #friend is NOT from this server saves friend server
+        else: 
             friends = Friends.objects.create(username1 = data["author"]["displayname"], username2=data["friend"]["author"]["displayname"], accept=0,server=data["friend"]["author"]["host"])
             return HttpResponse("<p>Friend Request has been sent!</p>\r\n", content_type="text/html")
+     #author is NOT from this server saves author server
     elif data["friend"]["author"]["host"] == host:
             friends = Friends.objects.create(username2 = data["author"]["displayname"], username1=data["friend"]["author"]["displayname"], accept=0,server=data["author"]["host"])
             return HttpResponse("<p>Friend Request has been sent!</p>\r\n", content_type="text/html")
+    #neither are within the server
     else:
         return HttpResponse("<p>Friend Request using wrong host!</p>\r\n", content_type="text/html")
   else: 
@@ -863,5 +903,3 @@ def can_share_images(username):
             return True
         return False
 
-def doSomething():
-  return null
