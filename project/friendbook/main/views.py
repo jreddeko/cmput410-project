@@ -327,8 +327,6 @@ def comments(request,userID,post_id):
 @csrf_exempt
 def posts(request):
     username = request.session["username"]
-    if not can_share_posts(username):
-        return HttpResponseForbidden()
     context = RequestContext(request)
     currentHost = request.get_host()
     if request.method == 'GET':
@@ -350,6 +348,8 @@ def posts(request):
         for listitem in mergedList:
             postList["posts"].append(listitem)
     
+    #if not can_share_posts(username):
+    #       return HttpResponseForbidden()
         return HttpResponse(json.loads(json.dumps(json.dumps(postList))), content_type="application/json")
 
 '''
@@ -372,8 +372,6 @@ def pubposts(request):
 def authorposts(request, user_id):
     username = request.session["username"]
 
-    if not can_share_posts(username):
-        return HttpResponseForbidden()
     if request.method == "GET":
         currentHost = request.get_host()
         userInfo = Users.objects.get(guid=user_id)
@@ -391,6 +389,9 @@ def authorposts(request, user_id):
         mergedList.sort(key = lambda item:item["pubDate"], reverse = True)
         for listitem in mergedList:
             postList["posts"].append(listitem)
+        
+        #if not can_share_posts(username):
+        #   return HttpResponseForbidden()
         
         return HttpResponse(json.loads(json.dumps(json.dumps(postList))), content_type="application/json")
 
@@ -581,57 +582,39 @@ def post(request, post_id):
         jsonResult = post2Json(currentHost, post)
         return HttpResponse(jsonResult, content_type="application/json")
     if request.method == 'POST':
-        # AJAX call by jQuery needs method to be POST to work so param
-        # is passed to identify the intended HTTP method
-        if "method" in request.POST:
-            if request.POST["method"] == "delete":
-                #check if the user is admin/author of post
-                userInfo = Users.objects.get(username=username)
-                postInfo = Posts.objects.get(guid=post_id)
-                
-                #server admins and the author has the permissions to delete the post
-                if userInfo.role == "admin" or postInfo.author.id == userInfo.id:
-                    postInfo.delete()
-                    print "author has permission"
-                    return HttpResponse("<p>Post has been deleted.</p>", content_type="text/html")
-                else:
-                    print "no permission"
-                    return HttpResponse("<p>You do not have permission to delete this post.</p>", content_type="text/html")
-        # for curl POST methods!
-        else:
-            userInfo = Users.objects.get(username=username)
-            old_post = Posts.objects.get(guid=post_id)
+        userInfo = Users.objects.get(username=username)
+        old_post = Posts.objects.get(guid=post_id)
 
-            postList = urlparse.parse_qs(request.body)
-                
-            title = str(postList["title"][0])
-            origin = currentHost
-            source = currentHost
-            description = str(postList["description"][0])
-            contentType = "text/html"
-            content = str(postList["content"][0])
-            categories = str(postList["category"][0])
-            pubDate = datetime.now().date()
-            visibility = str(postList["permission"][0])
-
-            old_post.title = title
-            old_post.source = source
-            old_post.origin = origin
-            old_post.category = categories
-            old_post.description = description
-            old_post.content_type = "text/html"
-            old_post.content = content
-            old_post.author = userInfo
-            old_post.pubDate = datetime.now().date()
-            old_post.visibility = visibility
-
-            old_post.save()
+        postList = urlparse.parse_qs(request.body)
             
-            userInfo = Users.objects.get(username=username)
-            post = Posts.objects.filter(guid=post_id)
-            jsonResult = post2Json(currentHost, post)
-            
-            return HttpResponse(json.dumps(jsonResult), content_type="application/json")
+        title = str(postList["title"][0])
+        origin = currentHost
+        source = currentHost
+        description = str(postList["description"][0])
+        contentType = "text/html"
+        content = str(postList["content"][0])
+        categories = str(postList["category"][0])
+        pubDate = datetime.now().date()
+        visibility = str(postList["permission"][0])
+
+        old_post.title = title
+        old_post.source = source
+        old_post.origin = origin
+        old_post.category = categories
+        old_post.description = description
+        old_post.content_type = "text/html"
+        old_post.content = content
+        old_post.author = userInfo
+        old_post.pubDate = datetime.now().date()
+        old_post.visibility = visibility
+
+        old_post.save()
+        
+        userInfo = Users.objects.get(username=username)
+        post = Posts.objects.filter(guid=post_id)
+        jsonResult = post2Json(currentHost, post)
+        
+        return HttpResponse(json.dumps(jsonResult), content_type="application/json")
     elif request.method == 'PUT':
         try:
             userInfo = Users.objects.get(username=username)
